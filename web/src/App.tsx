@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useSession } from './hooks/useSession'
 import { useDebouncedValue } from './hooks/useDebouncedValue'
 import { useLeads } from './hooks/useLeads'
+import { useGeneration } from './hooks/useGeneration'
 import LoginScreen from './components/LoginScreen'
 import LeadsHeader from './components/LeadsHeader'
 import SearchInput from './components/SearchInput'
@@ -12,6 +13,7 @@ import {
   BootSplash,
   EmptyState,
   ErrorState,
+  GenerationNotice,
   InlineErrorBanner,
   LoadingSkeleton,
   NoResultsState,
@@ -41,17 +43,34 @@ function LeadsDashboard() {
     refresh,
   } = useLeads(search)
 
+  // Refresh is the generation control: it dispatches the existing GitHub
+  // Actions workflow, waits for it, then refetches the list.
+  const { generating, notice, dismissNotice, generate } = useGeneration(refresh)
+
   const isSearching = search.trim().length > 0
   const hasRows = leads.length > 0
 
   return (
     <div className="min-h-dvh bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <LeadsHeader total={total} refreshing={refreshing} onRefresh={refresh} />
+      <LeadsHeader
+        total={total}
+        refreshing={refreshing}
+        generating={generating}
+        onGenerate={generate}
+      />
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <div className="mb-5 max-w-md">
           <SearchInput value={searchInput} onChange={setSearchInput} />
         </div>
+
+        {notice && (
+          <GenerationNotice
+            tone={notice.tone}
+            text={notice.text}
+            onDismiss={dismissNotice}
+          />
+        )}
 
         {/* An error with rows already on screen is a banner, not a takeover -
             losing the list the user was reading would be worse. */}

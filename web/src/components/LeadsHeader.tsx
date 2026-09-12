@@ -3,14 +3,20 @@ import { supabase } from '../lib/supabase'
 interface LeadsHeaderProps {
   total: number | null
   refreshing: boolean
-  onRefresh: () => void
+  generating: boolean
+  onGenerate: () => void
 }
 
 export default function LeadsHeader({
   total,
   refreshing,
-  onRefresh,
+  generating,
+  onGenerate,
 }: LeadsHeaderProps) {
+  // Disabled for the post-run refetch too, so the button never invites a
+  // second click while anything is still in flight.
+  const busy = generating || refreshing
+
   return (
     // h-14 is fixed because the table header sticks directly beneath it.
     <header className="sticky top-0 z-20 h-14 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
@@ -31,11 +37,13 @@ export default function LeadsHeader({
         <div className="ml-auto flex items-center gap-1">
           <button
             type="button"
-            onClick={onRefresh}
-            disabled={refreshing}
-            className="rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+            onClick={onGenerate}
+            disabled={busy}
+            aria-busy={busy}
+            title="Find new leads"
+            className="rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
           >
-            {refreshing ? 'Refreshing…' : 'Refresh'}
+            {generating ? 'Generating…' : refreshing ? 'Refreshing…' : 'Refresh'}
           </button>
           <button
             type="button"

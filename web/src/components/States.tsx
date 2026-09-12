@@ -79,6 +79,56 @@ export function InlineErrorBanner({ message, onRetry }: ErrorStateProps) {
   )
 }
 
+const NOTICE_TONES = {
+  success:
+    'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200',
+  neutral:
+    'border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300',
+  error:
+    'border-red-200 bg-red-50 text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300',
+} as const
+
+interface GenerationNoticeProps {
+  tone: keyof typeof NOTICE_TONES
+  text: string
+  onDismiss: () => void
+}
+
+/** Outcome of a generation run: progress, lead count, or a plain failure. */
+export function GenerationNotice({
+  tone,
+  text,
+  onDismiss,
+}: GenerationNoticeProps) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className={`mb-4 flex items-center justify-between gap-3 rounded-md border px-4 py-2.5 text-sm ${NOTICE_TONES[tone]}`}
+    >
+      <span>{text}</span>
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="Dismiss message"
+        className="shrink-0 rounded p-0.5 opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
+      >
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          className="size-3.5"
+        >
+          <path d="m5 5 10 10M15 5 5 15" />
+        </svg>
+      </button>
+    </div>
+  )
+}
+
 /** The table is genuinely empty - no leads have been generated yet. */
 export function EmptyState() {
   return (

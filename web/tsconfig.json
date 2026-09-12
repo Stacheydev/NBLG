@@ -20,5 +20,8 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src"]
+  // `api` holds the Vercel server functions. They are typechecked here but
+  // never bundled into the client: Vite only follows imports reachable from
+  // index.html, and nothing in src/ imports from api/.
+  "include": ["src", "api"]
 }
