@@ -1,0 +1,43 @@
+{
+  "analysis": {
+    "business_name": "MOROMART LEBANON",
+    "city": "Beirut",
+    "corporate_terms": [],
+    "email": "moromartlebanon@gmail.com",
+    "fetch_ok": true,
+    "has_sentry": false,
+    "has_store_locator": false,
+    "hreflang_count": 3,
+    "industry": "toys & kids",
+    "instagram": null,
+    "is_ecommerce": true,
+    "is_lebanon": true,
+    "is_shopify": true,
+    "lebanon_signals": {
+      "claim": [
+        "lb_in_email_local",
+        "lebanon_in_business_name"
+      ],
+      "medium": [
+        "lebanon_shipping_context"
+      ],
+      "strong": [],
+      "us_conflict": false
+    },
+    "phone": null,
+    "whatsapp": null
+  },
+  "instagram_followers": null,
+  "label": "moromart",
+  "products": {
+    "available": true,
+    "dominant_share": 0.9661016949152542,
+    "dominant_vendor": "MOROMART LEBANON",
+    "product_count": 59,
+    "vendors": {
+      "GN": 2,
+      "MOROMART LEBANON": 57
+    }
+  },
+  "url": "https://moromart.com"
+}

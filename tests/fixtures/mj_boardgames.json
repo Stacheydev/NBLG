@@ -1,0 +1,44 @@
+{
+  "analysis": {
+    "business_name": "MJ BoardGames Lebanon",
+    "city": null,
+    "corporate_terms": [],
+    "email": null,
+    "fetch_ok": true,
+    "has_sentry": false,
+    "has_store_locator": false,
+    "hreflang_count": 0,
+    "industry": "toys & kids",
+    "instagram": "mj_boardgames_hub.lb",
+    "is_ecommerce": true,
+    "is_lebanon": true,
+    "is_shopify": true,
+    "lebanon_signals": {
+      "claim": [
+        "lebanon_in_business_name"
+      ],
+      "medium": [
+        "lebanese_instagram_handle",
+        "lebanon_shipping_context"
+      ],
+      "strong": [],
+      "us_conflict": false
+    },
+    "phone": null,
+    "whatsapp": null
+  },
+  "instagram_followers": 8839,
+  "label": "mj_boardgames",
+  "products": {
+    "available": true,
+    "dominant_share": 0.96,
+    "dominant_vendor": "MJ BoardGames",
+    "product_count": 250,
+    "vendors": {
+      "MJ BoardGames": 240,
+      "MJ BoardGames Lebanon": 5,
+      "MJ boardgames": 5
+    }
+  },
+  "url": "https://mjboardgames.com"
+}

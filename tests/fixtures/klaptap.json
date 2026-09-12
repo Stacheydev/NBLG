@@ -1,0 +1,42 @@
+{
+  "analysis": {
+    "business_name": "Klaptap",
+    "city": "Beirut",
+    "corporate_terms": [],
+    "email": "hello@klaptap.com",
+    "fetch_ok": true,
+    "has_sentry": false,
+    "has_store_locator": false,
+    "hreflang_count": 0,
+    "industry": "toys & kids",
+    "instagram": "klap.tap",
+    "is_ecommerce": true,
+    "is_lebanon": true,
+    "is_shopify": true,
+    "lebanon_signals": {
+      "claim": [],
+      "medium": [
+        "city_in_contact_block:beirut",
+        "lebanon_shipping_context"
+      ],
+      "strong": [
+        "lebanese_phone"
+      ],
+      "us_conflict": false
+    },
+    "phone": "+961 76 721 900",
+    "whatsapp": null
+  },
+  "instagram_followers": 36000,
+  "label": "klaptap",
+  "products": {
+    "available": true,
+    "dominant_share": 1.0,
+    "dominant_vendor": "Klaptap",
+    "product_count": 250,
+    "vendors": {
+      "Klaptap": 250
+    }
+  },
+  "url": "https://klaptap.com"
+}

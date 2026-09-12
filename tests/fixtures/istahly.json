@@ -1,0 +1,43 @@
+{
+  "analysis": {
+    "business_name": "Istahly",
+    "city": null,
+    "corporate_terms": [],
+    "email": "info@istahly.com",
+    "fetch_ok": true,
+    "has_sentry": false,
+    "has_store_locator": false,
+    "hreflang_count": 0,
+    "industry": "beauty & cosmetics",
+    "instagram": "istahly.lb",
+    "is_ecommerce": true,
+    "is_lebanon": true,
+    "is_shopify": true,
+    "lebanon_signals": {
+      "claim": [],
+      "medium": [
+        "lebanese_instagram_handle",
+        "lebanon_shipping_context"
+      ],
+      "strong": [
+        "lebanese_phone"
+      ],
+      "us_conflict": false
+    },
+    "phone": "+961 70 766 067",
+    "whatsapp": null
+  },
+  "instagram_followers": 24000,
+  "label": "istahly",
+  "products": {
+    "available": true,
+    "dominant_share": 0.576,
+    "dominant_vendor": "istahly",
+    "product_count": 250,
+    "vendors": {
+      "Istahly": 106,
+      "istahly": 144
+    }
+  },
+  "url": "https://istahly.com"
+}

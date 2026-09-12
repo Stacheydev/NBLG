@@ -1,0 +1,41 @@
+{
+  "analysis": {
+    "business_name": "Adaline Lebanon",
+    "city": null,
+    "corporate_terms": [],
+    "email": null,
+    "fetch_ok": true,
+    "has_sentry": false,
+    "has_store_locator": false,
+    "hreflang_count": 0,
+    "industry": "beauty & cosmetics",
+    "instagram": "adaline.lb",
+    "is_ecommerce": true,
+    "is_lebanon": true,
+    "is_shopify": true,
+    "lebanon_signals": {
+      "claim": [
+        "lebanon_in_business_name"
+      ],
+      "medium": [
+        "lebanese_instagram_handle"
+      ],
+      "strong": [],
+      "us_conflict": false
+    },
+    "phone": null,
+    "whatsapp": null
+  },
+  "instagram_followers": 1272,
+  "label": "adaline",
+  "products": {
+    "available": true,
+    "dominant_share": 1.0,
+    "dominant_vendor": "Adaline",
+    "product_count": 1,
+    "vendors": {
+      "Adaline": 1
+    }
+  },
+  "url": "https://adalinelb.com"
+}

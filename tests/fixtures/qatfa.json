@@ -1,0 +1,40 @@
+{
+  "analysis": {
+    "business_name": "Qatfa Lebanon",
+    "city": null,
+    "corporate_terms": [],
+    "email": null,
+    "fetch_ok": true,
+    "has_sentry": false,
+    "has_store_locator": false,
+    "hreflang_count": 3,
+    "industry": "food & grocery",
+    "instagram": "qatfalebanon",
+    "is_ecommerce": true,
+    "is_lebanon": true,
+    "is_shopify": true,
+    "lebanon_signals": {
+      "claim": [
+        "lebanon_in_domain",
+        "lebanon_in_business_name"
+      ],
+      "medium": [],
+      "strong": [],
+      "us_conflict": false
+    },
+    "phone": null,
+    "whatsapp": null
+  },
+  "instagram_followers": 575,
+  "label": "qatfa",
+  "products": {
+    "available": true,
+    "dominant_share": 1.0,
+    "dominant_vendor": "Qatfa Lebanon",
+    "product_count": 5,
+    "vendors": {
+      "Qatfa Lebanon": 5
+    }
+  },
+  "url": "https://qatfalebanon.com"
+}

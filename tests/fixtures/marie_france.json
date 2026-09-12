@@ -1,0 +1,43 @@
+{
+  "analysis": {
+    "business_name": "Marie France Lebanon",
+    "city": null,
+    "corporate_terms": [],
+    "email": null,
+    "fetch_ok": true,
+    "has_sentry": true,
+    "has_store_locator": false,
+    "hreflang_count": 3,
+    "industry": "fashion",
+    "instagram": "mariefrancelingerie",
+    "is_ecommerce": true,
+    "is_lebanon": true,
+    "is_shopify": true,
+    "lebanon_signals": {
+      "claim": [
+        "lebanon_in_business_name"
+      ],
+      "medium": [
+        "lebanon_shipping_context"
+      ],
+      "strong": [
+        "lebanese_phone"
+      ],
+      "us_conflict": false
+    },
+    "phone": "+96170056057",
+    "whatsapp": null
+  },
+  "instagram_followers": 179000,
+  "label": "marie_france",
+  "products": {
+    "available": true,
+    "dominant_share": 1.0,
+    "dominant_vendor": "Marie France",
+    "product_count": 250,
+    "vendors": {
+      "Marie France": 250
+    }
+  },
+  "url": "https://mariefrancelingerie.com"
+}

@@ -1,0 +1,26 @@
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# SQLite side files.  northbound.db itself is NOT ignored - it is the
+# project's historical record and calibration dataset.
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Database backups (kept locally, not worth versioning)
+backups/
+
+# Local editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Virtual environments
+.venv/
+venv/
+env/
+# Local Claude Code settings
+.claude/settings.local.json

@@ -1,0 +1,15 @@
+# NorthBound Lead Finder - runtime dependencies.
+# Derived from the project's actual imports, not guessed.
+# Verified against Python 3.12.4.
+
+# scraper.py - fetching candidate sites and products.json
+requests==2.34.2
+
+# scraper.py - HTML parsing (imported as `bs4`)
+beautifulsoup4==4.15.0
+
+# scraper.py - DuckDuckGo discovery queries
+ddgs==9.14.4
+
+# Test suite only (261 tests, no network access)
+pytest==9.1.1

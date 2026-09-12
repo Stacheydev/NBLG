@@ -1,0 +1,1904 @@
+{
+  "_comment": [
+    "SAFETY NET ONLY. The scoring model in qualification.py is the primary",
+    "qualification mechanism. Add a brand here only when scoring demonstrably",
+    "fails to catch it. Entries with scope 'international' are also used by the",
+    "mono-brand-outlet hard rejection (H1) against products.json vendors.",
+    "'match': 'exact_token' disables fuzzy matching for short/ambiguous names."
+  ],
+  "brands": [
+    {
+      "name": "Nike",
+      "aliases": [
+        "Nike"
+      ],
+      "scope": "international",
+      "match": "exact_token"
+    },
+    {
+      "name": "Adidas",
+      "aliases": [
+        "Adidas"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Puma",
+      "aliases": [
+        "Puma"
+      ],
+      "scope": "international",
+      "match": "exact_token"
+    },
+    {
+      "name": "Zara",
+      "aliases": [
+        "Zara"
+      ],
+      "scope": "international",
+      "match": "exact_token"
+    },
+    {
+      "name": "H&M",
+      "aliases": [
+        "H&M",
+        "h m"
+      ],
+      "scope": "international",
+      "match": "exact_token"
+    },
+    {
+      "name": "Lacoste",
+      "aliases": [
+        "Lacoste"
+      ],
+      "scope": "international",
+      "domains": [
+        "lacoste.com"
+      ]
+    },
+    {
+      "name": "Gucci",
+      "aliases": [
+        "Gucci"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Prada",
+      "aliases": [
+        "Prada"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Louis Vuitton",
+      "aliases": [
+        "Louis Vuitton"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Chanel",
+      "aliases": [
+        "Chanel"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Dior",
+      "aliases": [
+        "Dior"
+      ],
+      "scope": "international",
+      "match": "exact_token"
+    },
+    {
+      "name": "Fendi",
+      "aliases": [
+        "Fendi"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Versace",
+      "aliases": [
+        "Versace"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Burberry",
+      "aliases": [
+        "Burberry"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Calvin Klein",
+      "aliases": [
+        "Calvin Klein"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Tommy Hilfiger",
+      "aliases": [
+        "Tommy Hilfiger"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Ralph Lauren",
+      "aliases": [
+        "Ralph Lauren"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Levi's",
+      "aliases": [
+        "Levi's",
+        "levi s"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Gap",
+      "aliases": [
+        "Gap"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Forever 21",
+      "aliases": [
+        "Forever 21"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Forever21",
+      "aliases": [
+        "Forever21"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Uniqlo",
+      "aliases": [
+        "Uniqlo"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Mango",
+      "aliases": [
+        "Mango"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Bershka",
+      "aliases": [
+        "Bershka"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Pull & Bear",
+      "aliases": [
+        "Pull & Bear",
+        "pull bear"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Stradivarius",
+      "aliases": [
+        "Stradivarius"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Oysho",
+      "aliases": [
+        "Oysho"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Massimo Dutti",
+      "aliases": [
+        "Massimo Dutti"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Reebok",
+      "aliases": [
+        "Reebok"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "New Balance",
+      "aliases": [
+        "New Balance"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Asics",
+      "aliases": [
+        "Asics"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Under Armour",
+      "aliases": [
+        "Under Armour"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Converse",
+      "aliases": [
+        "Converse"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Vans",
+      "aliases": [
+        "Vans"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Timberland",
+      "aliases": [
+        "Timberland"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "The North Face",
+      "aliases": [
+        "The North Face"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "North Face",
+      "aliases": [
+        "North Face"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Patagonia",
+      "aliases": [
+        "Patagonia"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Columbia",
+      "aliases": [
+        "Columbia"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Carhartt",
+      "aliases": [
+        "Carhartt"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Dickies",
+      "aliases": [
+        "Dickies"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Lee",
+      "aliases": [
+        "Lee"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Wrangler",
+      "aliases": [
+        "Wrangler"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Diesel",
+      "aliases": [
+        "Diesel"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Armani",
+      "aliases": [
+        "Armani"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Hugo Boss",
+      "aliases": [
+        "Hugo Boss"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Boss",
+      "aliases": [
+        "Boss"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Givenchy",
+      "aliases": [
+        "Givenchy"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Balenciaga",
+      "aliases": [
+        "Balenciaga"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Saint Laurent",
+      "aliases": [
+        "Saint Laurent"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Alexander McQueen",
+      "aliases": [
+        "Alexander McQueen"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Valentino",
+      "aliases": [
+        "Valentino"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Dolce & Gabbana",
+      "aliases": [
+        "Dolce & Gabbana",
+        "dolce gabbana"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Dolce and Gabbana",
+      "aliases": [
+        "Dolce and Gabbana"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Michael Kors",
+      "aliases": [
+        "Michael Kors"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Coach",
+      "aliases": [
+        "Coach"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Kate Spade",
+      "aliases": [
+        "Kate Spade"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Tory Burch",
+      "aliases": [
+        "Tory Burch"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Marc Jacobs",
+      "aliases": [
+        "Marc Jacobs"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Longchamp",
+      "aliases": [
+        "Longchamp"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Furla",
+      "aliases": [
+        "Furla"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Fossil",
+      "aliases": [
+        "Fossil"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Swatch",
+      "aliases": [
+        "Swatch"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Rolex",
+      "aliases": [
+        "Rolex"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Omega",
+      "aliases": [
+        "Omega"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Tag Heuer",
+      "aliases": [
+        "Tag Heuer"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Cartier",
+      "aliases": [
+        "Cartier"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Tiffany & Co",
+      "aliases": [
+        "Tiffany & Co",
+        "tiffany co"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Tiffany and Co",
+      "aliases": [
+        "Tiffany and Co"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Pandora",
+      "aliases": [
+        "Pandora"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Swarovski",
+      "aliases": [
+        "Swarovski"
+      ],
+      "scope": "international",
+      "domains": [
+        "swarovski.com"
+      ]
+    },
+    {
+      "name": "Sephora",
+      "aliases": [
+        "Sephora"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "MAC Cosmetics",
+      "aliases": [
+        "MAC Cosmetics"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "MAC Makeup",
+      "aliases": [
+        "MAC Makeup"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "MAC",
+      "aliases": [
+        "MAC"
+      ],
+      "scope": "international",
+      "match": "exact_token"
+    },
+    {
+      "name": "Estée Lauder",
+      "aliases": [
+        "Estée Lauder",
+        "estee lauder"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "L'Oréal",
+      "aliases": [
+        "L'Oréal",
+        "l oreal"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Lancôme",
+      "aliases": [
+        "Lancôme",
+        "lancome"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Clinique",
+      "aliases": [
+        "Clinique"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Benefit Cosmetics",
+      "aliases": [
+        "Benefit Cosmetics"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Too Faced",
+      "aliases": [
+        "Too Faced"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Urban Decay",
+      "aliases": [
+        "Urban Decay"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "NARS",
+      "aliases": [
+        "NARS"
+      ],
+      "scope": "international",
+      "match": "exact_token"
+    },
+    {
+      "name": "Bobbi Brown",
+      "aliases": [
+        "Bobbi Brown"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Chanel Beauty",
+      "aliases": [
+        "Chanel Beauty"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Dior Beauty",
+      "aliases": [
+        "Dior Beauty"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Guerlain",
+      "aliases": [
+        "Guerlain"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "YSL Beauty",
+      "aliases": [
+        "YSL Beauty"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Clarins",
+      "aliases": [
+        "Clarins"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Shiseido",
+      "aliases": [
+        "Shiseido"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "SK-II",
+      "aliases": [
+        "SK-II",
+        "sk ii"
+      ],
+      "scope": "international",
+      "match": "exact_token"
+    },
+    {
+      "name": "SKII",
+      "aliases": [
+        "SKII"
+      ],
+      "scope": "international",
+      "match": "exact_token"
+    },
+    {
+      "name": "Amorepacific",
+      "aliases": [
+        "Amorepacific"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Sulwhasoo",
+      "aliases": [
+        "Sulwhasoo"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Kiehl's",
+      "aliases": [
+        "Kiehl's",
+        "kiehl s"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Kiehls",
+      "aliases": [
+        "Kiehls"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "The Body Shop",
+      "aliases": [
+        "The Body Shop"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "L'Occitane",
+      "aliases": [
+        "L'Occitane",
+        "l occitane"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "LOccitane",
+      "aliases": [
+        "LOccitane"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Aesop",
+      "aliases": [
+        "Aesop"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Jo Malone",
+      "aliases": [
+        "Jo Malone"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Diptyque",
+      "aliases": [
+        "Diptyque"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Byredo",
+      "aliases": [
+        "Byredo"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Le Labo",
+      "aliases": [
+        "Le Labo"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Tom Ford",
+      "aliases": [
+        "Tom Ford"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Creed",
+      "aliases": [
+        "Creed"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Maison Francis Kurkdjian",
+      "aliases": [
+        "Maison Francis Kurkdjian"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Penhaligon's",
+      "aliases": [
+        "Penhaligon's",
+        "penhaligon s"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Penhaligons",
+      "aliases": [
+        "Penhaligons"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Acqua di Parma",
+      "aliases": [
+        "Acqua di Parma"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Hermès",
+      "aliases": [
+        "Hermès",
+        "hermes"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Bvlgari",
+      "aliases": [
+        "Bvlgari"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Montblanc",
+      "aliases": [
+        "Montblanc"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "IKEA",
+      "aliases": [
+        "IKEA"
+      ],
+      "scope": "international",
+      "match": "exact_token"
+    },
+    {
+      "name": "Wayfair",
+      "aliases": [
+        "Wayfair"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Pottery Barn",
+      "aliases": [
+        "Pottery Barn"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "West Elm",
+      "aliases": [
+        "West Elm"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Crate & Barrel",
+      "aliases": [
+        "Crate & Barrel",
+        "crate barrel"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Crate and Barrel",
+      "aliases": [
+        "Crate and Barrel"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Restoration Hardware",
+      "aliases": [
+        "Restoration Hardware"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Williams-Sonoma",
+      "aliases": [
+        "Williams-Sonoma",
+        "williams sonoma"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Sur La Table",
+      "aliases": [
+        "Sur La Table"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Bed Bath & Beyond",
+      "aliases": [
+        "Bed Bath & Beyond",
+        "bed bath beyond"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Macy's",
+      "aliases": [
+        "Macy's",
+        "macy s"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Macys",
+      "aliases": [
+        "Macys"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Nordstrom",
+      "aliases": [
+        "Nordstrom"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Bloomingdale's",
+      "aliases": [
+        "Bloomingdale's",
+        "bloomingdale s"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Bloomingdales",
+      "aliases": [
+        "Bloomingdales"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Saks Fifth Avenue",
+      "aliases": [
+        "Saks Fifth Avenue"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Neiman Marcus",
+      "aliases": [
+        "Neiman Marcus"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Bergdorf Goodman",
+      "aliases": [
+        "Bergdorf Goodman"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Harrods",
+      "aliases": [
+        "Harrods"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Selfridges",
+      "aliases": [
+        "Selfridges"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Galeries Lafayette",
+      "aliases": [
+        "Galeries Lafayette"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Printemps",
+      "aliases": [
+        "Printemps"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "El Corte Inglés",
+      "aliases": [
+        "El Corte Inglés",
+        "el corte ingles"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "La Rinascente",
+      "aliases": [
+        "La Rinascente"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Colette",
+      "aliases": [
+        "Colette"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Dover Street Market",
+      "aliases": [
+        "Dover Street Market"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Browns",
+      "aliases": [
+        "Browns"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "MatchesFashion",
+      "aliases": [
+        "MatchesFashion"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Farfetch",
+      "aliases": [
+        "Farfetch"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Net-a-Porter",
+      "aliases": [
+        "Net-a-Porter",
+        "net a porter"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Mytheresa",
+      "aliases": [
+        "Mytheresa"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "LVMH",
+      "aliases": [
+        "LVMH"
+      ],
+      "scope": "international",
+      "match": "exact_token"
+    },
+    {
+      "name": "Kering",
+      "aliases": [
+        "Kering"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Richemont",
+      "aliases": [
+        "Richemont"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Swatch Group",
+      "aliases": [
+        "Swatch Group"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "L'Oréal Group",
+      "aliases": [
+        "L'Oréal Group",
+        "l oreal group"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Estée Lauder Companies",
+      "aliases": [
+        "Estée Lauder Companies",
+        "estee lauder companies"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Coty",
+      "aliases": [
+        "Coty"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Puig",
+      "aliases": [
+        "Puig"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Shiseido Group",
+      "aliases": [
+        "Shiseido Group"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Amorepacific Group",
+      "aliases": [
+        "Amorepacific Group"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Kao Corporation",
+      "aliases": [
+        "Kao Corporation"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Unilever",
+      "aliases": [
+        "Unilever"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Procter & Gamble",
+      "aliases": [
+        "Procter & Gamble",
+        "procter gamble"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Johnson & Johnson",
+      "aliases": [
+        "Johnson & Johnson",
+        "johnson johnson"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Beiersdorf",
+      "aliases": [
+        "Beiersdorf"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Henkel",
+      "aliases": [
+        "Henkel"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Reckitt Benckiser",
+      "aliases": [
+        "Reckitt Benckiser"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Colgate-Palmolive",
+      "aliases": [
+        "Colgate-Palmolive",
+        "colgate palmolive"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Church & Dwight",
+      "aliases": [
+        "Church & Dwight",
+        "church dwight"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Kimberly-Clark",
+      "aliases": [
+        "Kimberly-Clark",
+        "kimberly clark"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Essity",
+      "aliases": [
+        "Essity"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Georgia-Pacific",
+      "aliases": [
+        "Georgia-Pacific",
+        "georgia pacific"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Clorox",
+      "aliases": [
+        "Clorox"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "SC Johnson",
+      "aliases": [
+        "SC Johnson"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Ecolab",
+      "aliases": [
+        "Ecolab"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Diversey",
+      "aliases": [
+        "Diversey"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Betco",
+      "aliases": [
+        "Betco"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Zep",
+      "aliases": [
+        "Zep"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Procter & Gamble Professional",
+      "aliases": [
+        "Procter & Gamble Professional",
+        "procter gamble professional"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Kimberly-Clark Professional",
+      "aliases": [
+        "Kimberly-Clark Professional",
+        "kimberly clark professional"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Essity Professional",
+      "aliases": [
+        "Essity Professional"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Georgia-Pacific Professional",
+      "aliases": [
+        "Georgia-Pacific Professional",
+        "georgia pacific professional"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Clorox Professional",
+      "aliases": [
+        "Clorox Professional"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "SC Johnson Professional",
+      "aliases": [
+        "SC Johnson Professional"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Ecolab Professional",
+      "aliases": [
+        "Ecolab Professional"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Diversey Professional",
+      "aliases": [
+        "Diversey Professional"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Betco Professional",
+      "aliases": [
+        "Betco Professional"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Zep Professional",
+      "aliases": [
+        "Zep Professional"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Apple",
+      "aliases": [
+        "Apple"
+      ],
+      "scope": "international",
+      "match": "generic_word",
+      "domains": [
+        "apple.com"
+      ]
+    },
+    {
+      "name": "Samsung",
+      "aliases": [
+        "Samsung"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Huawei",
+      "aliases": [
+        "Huawei"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Xiaomi",
+      "aliases": [
+        "Xiaomi"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Sony",
+      "aliases": [
+        "Sony"
+      ],
+      "scope": "international",
+      "match": "exact_token"
+    },
+    {
+      "name": "Amazon",
+      "aliases": [
+        "Amazon"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Walmart",
+      "aliases": [
+        "Walmart"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Target",
+      "aliases": [
+        "Target"
+      ],
+      "scope": "international",
+      "match": "generic_word"
+    },
+    {
+      "name": "Carrefour",
+      "aliases": [
+        "Carrefour"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "AliExpress",
+      "aliases": [
+        "AliExpress"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "eBay",
+      "aliases": [
+        "eBay"
+      ],
+      "scope": "international",
+      "match": "exact_token"
+    },
+    {
+      "name": "Aishti",
+      "aliases": [
+        "Aishti"
+      ],
+      "scope": "lebanese_group",
+      "domains": [
+        "aishti.com"
+      ]
+    },
+    {
+      "name": "ABC",
+      "aliases": [
+        "ABC"
+      ],
+      "scope": "lebanese_group",
+      "match": "exact_token"
+    },
+    {
+      "name": "Beirut Duty Free",
+      "aliases": [
+        "Beirut Duty Free"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Spinneys",
+      "aliases": [
+        "Spinneys"
+      ],
+      "scope": "lebanese_group",
+      "domains": [
+        "spinneys-lebanon.com"
+      ]
+    },
+    {
+      "name": "TSC",
+      "aliases": [
+        "TSC"
+      ],
+      "scope": "lebanese_group",
+      "match": "exact_token"
+    },
+    {
+      "name": "Azadea Group",
+      "aliases": [
+        "Azadea Group"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Azadea",
+      "aliases": [
+        "Azadea"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Malia Group",
+      "aliases": [
+        "Malia Group"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "BLC Bank",
+      "aliases": [
+        "BLC Bank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "BLOM Bank",
+      "aliases": [
+        "BLOM Bank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Byblos Bank",
+      "aliases": [
+        "Byblos Bank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Bank Audi",
+      "aliases": [
+        "Bank Audi"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "BankMed",
+      "aliases": [
+        "BankMed"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Fransabank",
+      "aliases": [
+        "Fransabank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "IBL Bank",
+      "aliases": [
+        "IBL Bank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Credit Libanais",
+      "aliases": [
+        "Credit Libanais"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Banque BEMO",
+      "aliases": [
+        "Banque BEMO"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "BEMO Bank",
+      "aliases": [
+        "BEMO Bank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "BEMO",
+      "aliases": [
+        "BEMO"
+      ],
+      "scope": "lebanese_group",
+      "match": "exact_token"
+    },
+    {
+      "name": "First National Bank",
+      "aliases": [
+        "First National Bank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Ahli International Bank",
+      "aliases": [
+        "Ahli International Bank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Banque Libano-Française",
+      "aliases": [
+        "Banque Libano-Française",
+        "banque libano francaise"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Lebanon & Gulf Bank",
+      "aliases": [
+        "Lebanon & Gulf Bank",
+        "lebanon gulf bank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Lebanon and Gulf Bank",
+      "aliases": [
+        "Lebanon and Gulf Bank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Bank of Beirut",
+      "aliases": [
+        "Bank of Beirut"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Arab Bank",
+      "aliases": [
+        "Arab Bank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Citi Lebanon",
+      "aliases": [
+        "Citi Lebanon"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "HSBC Lebanon",
+      "aliases": [
+        "HSBC Lebanon"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Standard Chartered Lebanon",
+      "aliases": [
+        "Standard Chartered Lebanon"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Audi Saradar",
+      "aliases": [
+        "Audi Saradar"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Saradar Group",
+      "aliases": [
+        "Saradar Group"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Al Mawarid Bank",
+      "aliases": [
+        "Al Mawarid Bank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Lebanon First Bank",
+      "aliases": [
+        "Lebanon First Bank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Banque de l'Habitat",
+      "aliases": [
+        "Banque de l'Habitat",
+        "banque de l habitat"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Banque de l'Industrie et du Travail",
+      "aliases": [
+        "Banque de l'Industrie et du Travail",
+        "banque de l industrie et du travail"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Banque de la Méditerranée",
+      "aliases": [
+        "Banque de la Méditerranée",
+        "banque de la mediterranee"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Banque du Liban et d'Outre-Mer",
+      "aliases": [
+        "Banque du Liban et d'Outre-Mer",
+        "banque du liban et d outre mer"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Banque Franco-Libanaise",
+      "aliases": [
+        "Banque Franco-Libanaise",
+        "banque franco libanaise"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Banque Libano-Brésilienne",
+      "aliases": [
+        "Banque Libano-Brésilienne",
+        "banque libano bresilienne"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Banque Libano-Suisse",
+      "aliases": [
+        "Banque Libano-Suisse",
+        "banque libano suisse"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Banque Nationale de Paris Intercontinentale",
+      "aliases": [
+        "Banque Nationale de Paris Intercontinentale"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Banque Nord-Sud",
+      "aliases": [
+        "Banque Nord-Sud",
+        "banque nord sud"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Banque Pharaon et Chiha",
+      "aliases": [
+        "Banque Pharaon et Chiha"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Banque Trad Credit Lyonnais",
+      "aliases": [
+        "Banque Trad Credit Lyonnais"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Banque Zilkha",
+      "aliases": [
+        "Banque Zilkha"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Crédit Lyonnais",
+      "aliases": [
+        "Crédit Lyonnais",
+        "credit lyonnais"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Crédit Populaire Libanais",
+      "aliases": [
+        "Crédit Populaire Libanais",
+        "credit populaire libanais"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Lebanese Canadian Bank",
+      "aliases": [
+        "Lebanese Canadian Bank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Lebanese Swiss Bank",
+      "aliases": [
+        "Lebanese Swiss Bank"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Société Générale",
+      "aliases": [
+        "Société Générale",
+        "societe generale"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "SGBL",
+      "aliases": [
+        "SGBL"
+      ],
+      "scope": "lebanese_group",
+      "match": "exact_token"
+    },
+    {
+      "name": "Khoury Home",
+      "aliases": [
+        "Khoury Home"
+      ],
+      "scope": "lebanese_group"
+    },
+    {
+      "name": "Bonjus",
+      "aliases": [
+        "Bonjus"
+      ],
+      "scope": "lebanese_group",
+      "match": "exact_token"
+    },
+    {
+      "name": "Medco",
+      "aliases": [
+        "Medco"
+      ],
+      "scope": "lebanese_group",
+      "match": "generic_word"
+    },
+    {
+      "name": "Mobilia",
+      "aliases": [
+        "Mobilia"
+      ],
+      "scope": "lebanese_group",
+      "match": "exact_token"
+    },
+    {
+      "name": "Avon",
+      "aliases": [
+        "avon"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Sihoo",
+      "aliases": [
+        "sihoo"
+      ],
+      "scope": "international"
+    },
+    {
+      "name": "Fattal",
+      "aliases": [
+        "Fattal",
+        "Fattal Group"
+      ],
+      "scope": "lebanese_group",
+      "domains": [
+        "fattalonline.com",
+        "fattal-online.myshopify.com",
+        "fattalgroup.com"
+      ]
+    },
+    {
+      "name": "Holdal",
+      "aliases": [
+        "Holdal",
+        "Holdal Group",
+        "MyHoldal"
+      ],
+      "scope": "lebanese_group",
+      "domains": [
+        "myholdal.com",
+        "holdalgroup.com"
+      ]
+    },
+    {
+      "name": "Pierre Cardin",
+      "aliases": [
+        "Pierre Cardin"
+      ],
+      "scope": "international"
+    }
+  ],
+  "settings": {
+    "token_similarity": 0.9,
+    "min_fuzzy_len": 5
+  }
+}

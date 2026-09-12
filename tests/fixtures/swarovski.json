@@ -1,0 +1,46 @@
+{
+  "analysis": {
+    "business_name": "Swarovski Lebanon",
+    "city": "Beirut",
+    "corporate_terms": [],
+    "email": null,
+    "fetch_ok": true,
+    "has_sentry": false,
+    "has_store_locator": false,
+    "hreflang_count": 4,
+    "industry": "jewelry & watches",
+    "instagram": "swarovski.retailer.lebanon",
+    "is_ecommerce": true,
+    "is_lebanon": true,
+    "is_shopify": true,
+    "lebanon_signals": {
+      "claim": [
+        "lebanon_in_business_name"
+      ],
+      "medium": [
+        "lebanese_instagram_handle",
+        "city_in_contact_block:beirut"
+      ],
+      "strong": [
+        "lb_domain",
+        "lebanese_whatsapp"
+      ],
+      "us_conflict": false
+    },
+    "phone": null,
+    "whatsapp": "+9613625156"
+  },
+  "instagram_followers": 6098,
+  "label": "swarovski",
+  "products": {
+    "available": true,
+    "dominant_share": 0.996,
+    "dominant_vendor": "SWAROVSKI",
+    "product_count": 250,
+    "vendors": {
+      "SWAROVSKI": 249,
+      "Swarovski Lebanon": 1
+    }
+  },
+  "url": "https://swarovski.com.lb"
+}

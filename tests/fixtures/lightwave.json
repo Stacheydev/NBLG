@@ -1,0 +1,43 @@
+{
+  "analysis": {
+    "business_name": "Lightwave Lebanon",
+    "city": null,
+    "corporate_terms": [],
+    "email": "iNFO@LIGHTWAVELB.COM",
+    "fetch_ok": true,
+    "has_sentry": false,
+    "has_store_locator": false,
+    "hreflang_count": 3,
+    "industry": "home & furniture",
+    "instagram": "lightwavelb",
+    "is_ecommerce": true,
+    "is_lebanon": true,
+    "is_shopify": true,
+    "lebanon_signals": {
+      "claim": [
+        "lebanon_in_business_name"
+      ],
+      "medium": [
+        "lebanon_shipping_context"
+      ],
+      "strong": [
+        "lebanese_phone"
+      ],
+      "us_conflict": false
+    },
+    "phone": null,
+    "whatsapp": null
+  },
+  "instagram_followers": 235,
+  "label": "lightwave",
+  "products": {
+    "available": true,
+    "dominant_share": 1.0,
+    "dominant_vendor": "Lightwave Lebanon",
+    "product_count": 50,
+    "vendors": {
+      "Lightwave Lebanon": 50
+    }
+  },
+  "url": "https://lightwavelb.com"
+}

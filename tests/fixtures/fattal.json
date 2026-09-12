@@ -1,0 +1,80 @@
+{
+  "analysis": {
+    "business_name": "Fattal",
+    "city": null,
+    "corporate_terms": [],
+    "email": "info@fattalonline.com",
+    "fetch_ok": true,
+    "has_sentry": false,
+    "has_store_locator": false,
+    "hreflang_count": 0,
+    "industry": "toys & kids",
+    "instagram": "fattalonline",
+    "is_ecommerce": true,
+    "is_lebanon": true,
+    "is_shopify": true,
+    "lebanon_signals": {
+      "claim": [],
+      "medium": [
+        "lebanon_shipping_context"
+      ],
+      "strong": [
+        "lebanese_phone"
+      ],
+      "us_conflict": false
+    },
+    "phone": "+9613655267",
+    "whatsapp": null
+  },
+  "instagram_followers": 49000,
+  "label": "fattal",
+  "products": {
+    "available": true,
+    "dominant_share": 0.336,
+    "dominant_vendor": "Eastpak",
+    "product_count": 250,
+    "vendors": {
+      "Afia": 5,
+      "Amatoury": 8,
+      "Berghoff": 5,
+      "Braun": 12,
+      "Brio": 3,
+      "Cadbury": 3,
+      "California Garden": 4,
+      "Camay": 1,
+      "Carefree": 2,
+      "Chateau Fakra": 1,
+      "Château Kefraya": 5,
+      "Clear": 1,
+      "Clear Blue": 1,
+      "Clorets": 1,
+      "Dettol": 1,
+      "Dove": 7,
+      "Eastpak": 84,
+      "Elphy": 12,
+      "Evian": 2,
+      "Halls": 1,
+      "Heinz": 3,
+      "Jawhara": 5,
+      "Jif": 1,
+      "Johnson's Baby": 1,
+      "Karcher": 4,
+      "Kenwood": 4,
+      "Korkmaz": 7,
+      "La Molisana": 3,
+      "Leifheit": 11,
+      "Listerine": 1,
+      "Logitech": 1,
+      "Lux": 7,
+      "Neutrogena": 7,
+      "Omo": 3,
+      "PlayStation": 4,
+      "Purepak": 1,
+      "Rexona": 1,
+      "Sunsilk": 1,
+      "Tupperware": 24,
+      "Vileda": 2
+    }
+  },
+  "url": "https://fattalonline.com"
+}

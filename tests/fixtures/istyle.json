@@ -1,0 +1,43 @@
+{
+  "analysis": {
+    "business_name": "iSTYLE Lebanon",
+    "city": "Byblos",
+    "corporate_terms": [],
+    "email": "info@istyle.com.lb",
+    "fetch_ok": true,
+    "has_sentry": false,
+    "has_store_locator": true,
+    "hreflang_count": 0,
+    "industry": "jewelry & watches",
+    "instagram": "istylelebanon",
+    "is_ecommerce": true,
+    "is_lebanon": true,
+    "is_shopify": true,
+    "lebanon_signals": {
+      "claim": [
+        "lebanon_in_business_name"
+      ],
+      "medium": [],
+      "strong": [
+        "lb_domain",
+        "lebanese_phone",
+        "lb_email_domain"
+      ],
+      "us_conflict": false
+    },
+    "phone": "009611283989",
+    "whatsapp": null
+  },
+  "instagram_followers": 20000,
+  "label": "istyle",
+  "products": {
+    "available": true,
+    "dominant_share": 1.0,
+    "dominant_vendor": "Apple",
+    "product_count": 250,
+    "vendors": {
+      "Apple": 250
+    }
+  },
+  "url": "https://istyle.com.lb"
+}

@@ -1,0 +1,37 @@
+{
+  "analysis": {
+    "business_name": "Maureen Abood Market",
+    "city": null,
+    "corporate_terms": [],
+    "email": null,
+    "fetch_ok": true,
+    "has_sentry": false,
+    "has_store_locator": false,
+    "hreflang_count": 0,
+    "industry": "food & grocery",
+    "instagram": "maureenabood",
+    "is_ecommerce": true,
+    "is_lebanon": false,
+    "is_shopify": true,
+    "lebanon_signals": {
+      "claim": [],
+      "medium": [],
+      "strong": [],
+      "us_conflict": false
+    },
+    "phone": null,
+    "whatsapp": null
+  },
+  "instagram_followers": 45000,
+  "label": "maureen_abood_us",
+  "products": {
+    "available": true,
+    "dominant_share": 1.0,
+    "dominant_vendor": "Maureen Abood Market",
+    "product_count": 62,
+    "vendors": {
+      "Maureen Abood Market": 62
+    }
+  },
+  "url": "https://shop.maureenabood.com"
+}

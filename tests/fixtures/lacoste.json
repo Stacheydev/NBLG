@@ -1,0 +1,45 @@
+{
+  "analysis": {
+    "business_name": "LACOSTE LEBANON",
+    "city": null,
+    "corporate_terms": [],
+    "email": "customerservice@lacoste.com.lb",
+    "fetch_ok": true,
+    "has_sentry": false,
+    "has_store_locator": true,
+    "hreflang_count": 59,
+    "industry": "fashion",
+    "instagram": "lacoste",
+    "is_ecommerce": true,
+    "is_lebanon": true,
+    "is_shopify": true,
+    "lebanon_signals": {
+      "claim": [
+        "lebanon_in_business_name"
+      ],
+      "medium": [
+        "lebanon_shipping_context"
+      ],
+      "strong": [
+        "lb_domain",
+        "lebanese_phone",
+        "lb_email_domain"
+      ],
+      "us_conflict": false
+    },
+    "phone": "+961 1 489 289",
+    "whatsapp": null
+  },
+  "instagram_followers": 9000000,
+  "label": "lacoste",
+  "products": {
+    "available": true,
+    "dominant_share": 1.0,
+    "dominant_vendor": "LACOSTE",
+    "product_count": 250,
+    "vendors": {
+      "LACOSTE": 250
+    }
+  },
+  "url": "https://lacoste.com.lb"
+}

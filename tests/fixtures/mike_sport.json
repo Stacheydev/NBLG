@@ -1,0 +1,43 @@
+{
+  "analysis": {
+    "business_name": "Mike Sport",
+    "city": null,
+    "corporate_terms": [],
+    "email": null,
+    "fetch_ok": true,
+    "has_sentry": false,
+    "has_store_locator": false,
+    "hreflang_count": 3,
+    "industry": "sports & fitness",
+    "instagram": "mikesportleb",
+    "is_ecommerce": true,
+    "is_lebanon": true,
+    "is_shopify": true,
+    "lebanon_signals": {
+      "claim": [],
+      "medium": [
+        "lbp_currency"
+      ],
+      "strong": [
+        "lebanese_whatsapp"
+      ],
+      "us_conflict": false
+    },
+    "phone": null,
+    "whatsapp": "+96181114967"
+  },
+  "instagram_followers": 117000,
+  "label": "mike_sport",
+  "products": {
+    "available": true,
+    "dominant_share": 0.6,
+    "dominant_vendor": "Mike Sport International",
+    "product_count": 5,
+    "vendors": {
+      "Adidas": 1,
+      "Mike Sport": 1,
+      "Mike Sport International": 3
+    }
+  },
+  "url": "https://mikesport.com"
+}
