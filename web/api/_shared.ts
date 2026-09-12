@@ -6,6 +6,13 @@
  * Everything privileged lives here and only here: the GitHub token is read
  * from the server environment, used to sign outbound GitHub requests, and is
  * never returned to the browser - not in a success body, not in an error.
+ *
+ * INBOUND vs OUTBOUND types, because mixing them caused a production 500:
+ * Vercel invokes these functions with the Node-style (req, res) pair, where
+ * `req.headers` is a plain object - NOT a Web `Headers` with `.get()`. So the
+ * handler interface below is Node-shaped. The Web `fetch`/`Response` types
+ * still appear, but only for OUTBOUND calls we make to Supabase and GitHub,
+ * where they are genuinely correct.
  */
 
 // Declared locally so these functions need no @types/node dependency.
@@ -21,21 +28,90 @@ export const WORKFLOW_REF = 'main'
 
 const GITHUB_API = 'https://api.github.com'
 
+/**
+ * The inbound request, as Vercel's Node runtime supplies it.
+ *
+ * Only the members actually used are declared - a minimal local shape avoids
+ * pulling in @vercel/node purely for types.
+ */
+export interface ApiRequest {
+  method?: string | undefined
+  url?: string | undefined
+  headers: unknown
+  query?: Record<string, string | string[] | undefined> | undefined
+}
+
+/** The outbound response helper object Vercel supplies alongside it. */
+export interface ApiResponse {
+  status(code: number): ApiResponse
+  json(body: unknown): void
+  setHeader(name: string, value: string): void
+}
+
 export interface ServerEnv {
   githubToken: string
   supabaseUrl: string
   supabaseAnonKey: string
 }
 
-/** JSON response with caching disabled - run state must never be cached. */
-export function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      'content-type': 'application/json',
-      'cache-control': 'no-store',
-    },
-  })
+/**
+ * Read one header regardless of which shape the runtime used.
+ *
+ * Node's IncomingMessage exposes a plain lower-cased object; the Fetch API
+ * exposes a `Headers` with `.get()`. Supporting both is a few lines and means
+ * a runtime change cannot reintroduce `headers.get is not a function`.
+ */
+export function headerValue(headers: unknown, name: string): string | null {
+  if (!headers || typeof headers !== 'object') return null
+
+  // Web Headers (Fetch API).
+  const getter = (headers as { get?: unknown }).get
+  if (typeof getter === 'function') {
+    return (headers as Headers).get(name) ?? null
+  }
+
+  // Node IncomingMessage.headers - keys arrive lower-cased, but HTTP header
+  // names are case-insensitive by spec, so match that way rather than relying
+  // on the runtime having normalised them.
+  const record = headers as Record<string, string | string[] | undefined>
+  const target = name.toLowerCase()
+  for (const key of Object.keys(record)) {
+    if (key.toLowerCase() !== target) continue
+    const raw = record[key]
+    if (Array.isArray(raw)) return raw[0] ?? null
+    return typeof raw === 'string' ? raw : null
+  }
+  return null
+}
+
+/**
+ * Read one query parameter.
+ *
+ * Vercel pre-parses the query string into `req.query`; parsing `req.url` is a
+ * fallback so a runtime that does not pre-parse still works.
+ */
+export function queryValue(req: ApiRequest, name: string): string | null {
+  const parsed = req.query?.[name]
+  if (Array.isArray(parsed)) return parsed[0] ?? null
+  if (typeof parsed === 'string') return parsed
+
+  if (typeof req.url === 'string') {
+    const start = req.url.indexOf('?')
+    if (start >= 0) {
+      return new URLSearchParams(req.url.slice(start + 1)).get(name)
+    }
+  }
+  return null
+}
+
+/** Send a JSON body. Caching is always off - run state must never be cached. */
+export function sendJson(
+  res: ApiResponse,
+  body: unknown,
+  status = 200,
+): void {
+  res.setHeader('cache-control', 'no-store')
+  res.status(status).json(body)
 }
 
 /**
@@ -69,7 +145,7 @@ export function readEnv(): ServerEnv | null {
 
 export type AuthResult =
   | { ok: true; userId: string }
-  | { ok: false; response: Response }
+  | { ok: false; status: number; error: string }
 
 /**
  * Require a valid Supabase session on the request.
@@ -78,18 +154,21 @@ export type AuthResult =
  * hand it to Supabase's own /auth/v1/user endpoint and trust that verdict.
  * This needs only the public anon key, so no service-role key and no JWT
  * secret is introduced anywhere in this application.
+ *
+ * Returns the failure as data rather than sending it, so the caller owns the
+ * response object.
  */
 export async function requireUser(
-  request: Request,
+  req: ApiRequest,
   env: ServerEnv,
 ): Promise<AuthResult> {
-  const header = request.headers.get('authorization') ?? ''
+  const header = headerValue(req.headers, 'authorization') ?? ''
   const token = /^bearer\s+/i.test(header)
     ? header.replace(/^bearer\s+/i, '').trim()
     : ''
 
   if (!token) {
-    return { ok: false, response: json({ error: 'Not signed in.' }, 401) }
+    return { ok: false, status: 401, error: 'Not signed in.' }
   }
 
   let lookup: Response
@@ -104,12 +183,13 @@ export async function requireUser(
     console.error('Supabase auth lookup failed:', cause)
     return {
       ok: false,
-      response: json({ error: 'Could not verify your session.' }, 503),
+      status: 503,
+      error: 'Could not verify your session.',
     }
   }
 
   if (!lookup.ok) {
-    return { ok: false, response: json({ error: 'Not signed in.' }, 401) }
+    return { ok: false, status: 401, error: 'Not signed in.' }
   }
 
   const user = (await lookup.json().catch(() => null)) as {
@@ -117,7 +197,7 @@ export async function requireUser(
   } | null
 
   if (!user?.id) {
-    return { ok: false, response: json({ error: 'Not signed in.' }, 401) }
+    return { ok: false, status: 401, error: 'Not signed in.' }
   }
 
   return { ok: true, userId: user.id }

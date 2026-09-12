@@ -10,39 +10,56 @@
  * dispatch. The browser passes it to /api/generate-status, which then treats
  * the first run with a larger id as this run. Run ids are monotonic, so this
  * identifies the run without adding an input to the workflow file.
+ *
+ * Signature is Vercel's Node (req, res) pair - that is what this runtime
+ * actually invokes. A single default export, because named method exports are
+ * a Web-handler convention this runtime ignores.
  */
 import {
+  type ApiRequest,
+  type ApiResponse,
   REPO_NAME,
   REPO_OWNER,
   WORKFLOW_FILE,
   WORKFLOW_REF,
   github,
   isActive,
-  json,
   listRuns,
   readEnv,
   requireUser,
+  sendJson,
   // The .js extension is required, not optional: web/package.json sets
   // "type": "module", so Vercel's compiled output is ESM, and Node's ESM
   // resolver does not guess extensions. TypeScript maps './_shared.js' back
   // to './_shared.ts' at check time.
 } from './_shared.js'
 
-async function handler(request: Request): Promise<Response> {
-  if (request.method !== 'POST') {
-    return json({ error: 'Method not allowed.' }, 405)
+export default async function handler(
+  req: ApiRequest,
+  res: ApiResponse,
+): Promise<void> {
+  if (req.method !== 'POST') {
+    sendJson(res, { error: 'Method not allowed.' }, 405)
+    return
   }
 
   const env = readEnv()
-  if (!env) return json({ error: 'Server is not configured.' }, 500)
+  if (!env) {
+    sendJson(res, { error: 'Server is not configured.' }, 500)
+    return
+  }
 
   // Only signed-in users may spend a generation run.
-  const auth = await requireUser(request, env)
-  if (!auth.ok) return auth.response
+  const auth = await requireUser(req, env)
+  if (!auth.ok) {
+    sendJson(res, { error: auth.error }, auth.status)
+    return
+  }
 
   const runs = await listRuns(env)
   if (runs === null) {
-    return json({ error: 'Could not reach GitHub.' }, 502)
+    sendJson(res, { error: 'Could not reach GitHub.' }, 502)
+    return
   }
 
   // A run is already queued or going. The workflow's own concurrency group
@@ -52,7 +69,8 @@ async function handler(request: Request): Promise<Response> {
   // after" find this very run.
   const active = runs.find(isActive)
   if (active) {
-    return json({ state: 'already_running', after: active.id - 1 })
+    sendJson(res, { state: 'already_running', after: active.id - 1 })
+    return
   }
 
   const latestId = runs.reduce((highest, run) => Math.max(highest, run.id), 0)
@@ -66,7 +84,8 @@ async function handler(request: Request): Promise<Response> {
     )
   } catch (cause) {
     console.error('Workflow dispatch threw:', cause)
-    return json({ error: 'Could not start generation.' }, 502)
+    sendJson(res, { error: 'Could not start generation.' }, 502)
+    return
   }
 
   // A successful dispatch is 204 No Content and carries no run id, which is
@@ -77,11 +96,9 @@ async function handler(request: Request): Promise<Response> {
       dispatch.status,
       await dispatch.text().catch(() => '(no body)'),
     )
-    return json({ error: 'Could not start generation.' }, 502)
+    sendJson(res, { error: 'Could not start generation.' }, 502)
+    return
   }
 
-  return json({ state: 'queued', after: latestId })
+  sendJson(res, { state: 'queued', after: latestId })
 }
-
-export default handler
-export const POST = handler
