@@ -1,0 +1,33 @@
+{
+  // Typechecks the Vercel serverless functions under the module resolution
+  // they ACTUALLY run with.
+  //
+  // The client (tsconfig.json) uses moduleResolution "bundler", which lets
+  // Vite resolve extensionless relative imports. Vercel does not bundle
+  // api/*.ts - it compiles each file and runs it as ESM, because
+  // package.json sets "type": "module". Node's ESM resolver requires explicit
+  // file extensions there.
+  //
+  // Checking api/ as "bundler" is what let `import './_shared'` pass the
+  // build and then fail at runtime with ERR_MODULE_NOT_FOUND. "nodenext"
+  // enforces the extension, so that mistake is now a typecheck error.
+  "compilerOptions": {
+    "target": "ES2022",
+    // DOM supplies Request/Response/URL, which Node also provides at runtime.
+    // It avoids an @types/node dependency purely for these globals.
+    "lib": ["ES2022", "DOM"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["api"]
+}

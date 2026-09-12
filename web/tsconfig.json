@@ -20,8 +20,8 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  // `api` holds the Vercel server functions. They are typechecked here but
-  // never bundled into the client: Vite only follows imports reachable from
-  // index.html, and nothing in src/ imports from api/.
-  "include": ["src", "api"]
+  // Client code only. The Vercel functions in api/ are checked by
+  // tsconfig.api.json instead, because they run as Node ESM rather than
+  // through Vite's bundler resolution.
+  "include": ["src"]
 }

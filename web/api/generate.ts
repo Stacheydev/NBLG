@@ -22,7 +22,11 @@ import {
   listRuns,
   readEnv,
   requireUser,
-} from './_shared'
+  // The .js extension is required, not optional: web/package.json sets
+  // "type": "module", so Vercel's compiled output is ESM, and Node's ESM
+  // resolver does not guess extensions. TypeScript maps './_shared.js' back
+  // to './_shared.ts' at check time.
+} from './_shared.js'
 
 async function handler(request: Request): Promise<Response> {
   if (request.method !== 'POST') {

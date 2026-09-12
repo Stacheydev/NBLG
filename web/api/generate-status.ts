@@ -11,7 +11,8 @@ import {
   readEnv,
   requireUser,
   runState,
-} from './_shared'
+  // .js extension required under Node ESM - see the note in generate.ts.
+} from './_shared.js'
 
 interface StatusBody {
   state: GenerationState
