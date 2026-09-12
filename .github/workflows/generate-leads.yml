@@ -1,0 +1,165 @@
+name: NBLG lead generation
+
+# Manual only for this first version: the whole pipeline is being
+# validated by hand before a schedule is considered.
+on:
+  workflow_dispatch:
+
+# northbound_leads.db is committed back to main and IS the generator's
+# deduplication memory.  Two runs starting from the same commit would
+# diverge and one would lose its leads on push, so runs are serialised.
+#
+# cancel-in-progress is false deliberately: cancelling a run mid-write is
+# precisely how a hot SQLite journal gets left behind.
+concurrency:
+  group: nblg-generate
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    # The job cap is the outer backstop.  The generator itself is capped
+    # lower (GENERATOR_TIMEOUT) so that sync and commit always get to run
+    # even when discovery overruns - see the "Run the lead generator"
+    # step.  Measured runs so far complete in 2-7 minutes.
+    timeout-minutes: 30
+
+    env:
+      # Inner cap for the generator, leaving ~8 minutes of the job budget
+      # for the sync, the safety check, and the push.
+      GENERATOR_TIMEOUT: 22m
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          # requirements.txt states its pins were verified against 3.12.4.
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # The high-water mark MUST be read before the generator runs.
+      # leads.id is INTEGER PRIMARY KEY AUTOINCREMENT and nothing in the
+      # generator deletes rows, so ids are monotonic and never reused -
+      # which is what makes "id > baseline" an exact description of this
+      # run's output.  Opened mode=ro so capturing it cannot alter state.
+      - name: Capture the baseline lead id
+        id: baseline
+        run: |
+          baseline=$(python -c "import sqlite3, database; c = sqlite3.connect(f'file:{database.DATABASE_NAME}?mode=ro', uri=True); print(c.execute('SELECT COALESCE(MAX(id), 0) FROM leads').fetchone()[0]); c.close()")
+          echo "Baseline lead id before this run: $baseline"
+          echo "baseline_id=$baseline" >> "$GITHUB_OUTPUT"
+
+      # The generator is invoked exactly as it is locally: `python main.py`,
+      # no arguments, no environment input.  -u only unbuffers stdout so
+      # progress survives in the log if the process is cut short.
+      #
+      # Its exit code is captured rather than allowed to fail the step.
+      # Every lead is committed in its own SQLite transaction, so a run
+      # that dies partway still leaves valid leads behind, and those must
+      # reach Supabase.  The run is reported as failed at the very end.
+      #
+      # The inner `timeout` sends SIGINT first so Python unwinds normally
+      # instead of being killed mid-statement; SIGKILL follows only if it
+      # ignores that.
+      - name: Run the lead generator
+        id: generate
+        run: |
+          code=0
+          timeout --signal=INT --kill-after=30s "$GENERATOR_TIMEOUT" \
+            python -u main.py || code=$?
+          echo "Generator exit code: $code"
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      # Runs whenever a baseline exists, regardless of how the generator
+      # finished - that is the point.  A sync failure fails this step,
+      # which skips the commit below: an unsynced database is not
+      # committed as a completed run, and the next run rediscovers those
+      # domains and syncs them (the upsert is keyed on domain, so this
+      # self-heals without duplicating).
+      - name: Sync new leads to Supabase
+        id: sync
+        if: ${{ !cancelled() && steps.baseline.outcome == 'success' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BASELINE_ID: ${{ steps.baseline.outputs.baseline_id }}
+        run: python sync_to_supabase.py --since-id "$BASELINE_ID"
+
+      # A leftover journal means the generator did not exit cleanly, and
+      # these files are gitignored - so committing the .db now would
+      # capture a possibly mid-transaction database WITHOUT its recovery
+      # journal.  Refuse instead.
+      - name: Check for SQLite journal artifacts
+        run: |
+          found=0
+          for artifact in \
+            northbound_leads.db-journal \
+            northbound_leads.db-wal \
+            northbound_leads.db-shm
+          do
+            if [ -e "$artifact" ]; then
+              echo "::error::$artifact is present - the generator did not exit cleanly."
+              found=1
+            fi
+          done
+          if [ "$found" -ne 0 ]; then
+            echo "Refusing to commit a database that may be mid-transaction."
+            exit 1
+          fi
+          echo "No SQLite journal artifacts present."
+
+      # Only the database is ever staged, and only when it actually
+      # changed, so a run that discovered nothing makes no commit.
+      #
+      # Note: a run that saved zero LEADS usually still changes the file,
+      # because rejected_sites grew.  That is worth committing - it is the
+      # cache that stops the next run re-fetching the same dead sites.
+      - name: Commit and push the updated database
+        run: |
+          if git diff --quiet HEAD -- northbound_leads.db; then
+            echo "northbound_leads.db is unchanged - nothing to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -- northbound_leads.db
+          git commit -m "Automated NBLG lead generation"
+          git push origin HEAD:main
+          echo "Pushed the updated database to main."
+
+      # Last, so that a partially successful run has already preserved
+      # and synced whatever it managed to save before the job turns red.
+      - name: Report the generator outcome
+        if: ${{ !cancelled() }}
+        env:
+          GENERATOR_EXIT_CODE: ${{ steps.generate.outputs.exit_code }}
+        run: |
+          case "$GENERATOR_EXIT_CODE" in
+            0)
+              echo "Generator exited cleanly."
+              ;;
+            124 | 130 | 137)
+              echo "::error::Generator hit the $GENERATOR_TIMEOUT cap (exit $GENERATOR_EXIT_CODE). Any leads saved before the cap were synced and committed."
+              exit 1
+              ;;
+            '')
+              echo "::error::Generator reported no exit code - the step was skipped or killed before it could record one."
+              exit 1
+              ;;
+            *)
+              echo "::error::Generator exited with code $GENERATOR_EXIT_CODE. Any leads saved before it failed were synced and committed."
+              exit 1
+              ;;
+          esac
