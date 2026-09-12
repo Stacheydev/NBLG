@@ -14,8 +14,17 @@ backups/
 
 # Supabase credentials.  The sync script reads these from the
 # environment only; a local .env must never be committed.
+# These patterns have no slash, so they match at any depth - web/.env.local
+# is covered too.  .env.example is re-included: it holds only placeholders.
 .env
 .env.*
+!.env.example
+
+# Frontend (web/) tooling and build output
+node_modules/
+dist/
+.vercel/
+*.tsbuildinfo
 
 # Local editor / OS noise
 .vscode/
