@@ -12,6 +12,11 @@ __pycache__/
 # Database backups (kept locally, not worth versioning)
 backups/
 
+# Supabase credentials.  The sync script reads these from the
+# environment only; a local .env must never be committed.
+.env
+.env.*
+
 # Local editor / OS noise
 .vscode/
 .idea/
