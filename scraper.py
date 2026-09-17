@@ -31,6 +31,10 @@ from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
 from ddgs import DDGS
+# ddgs never returns an empty list: a query with nothing left to give
+# raises, and so does a timeout.  The two must be told apart, so the
+# exception classes are imported rather than the messages matched.
+from ddgs.exceptions import DDGSException, RatelimitException, TimeoutException
 
 # ============================================================
 # SEARCH SETTINGS
@@ -84,6 +88,26 @@ KEYWORDS = [
 ]
 
 MAX_RESULTS_PER_QUERY = 10
+
+# How deep to read each query.  DuckDuckGo returns ten results a page and
+# discovery used to read only the first, which is what exhausted the
+# search: 28 queries x page 1 is a CLOSED pool of ~195 domains, and once
+# the database knew ~90% of it a run could not find anything new no
+# matter how often it ran.
+#
+# Measured before changing it: pages 2-5 of eight of these same queries
+# exposed 208 domains absent from the database, against 20 from page 1 of
+# all 28.  A sample of those deep-page domains qualified at 29% under the
+# EXISTING rules - so the pool was the bottleneck, not the filters.
+#
+# 4 is deliberately modest: precision falls with depth (page 4 carries
+# noticeably more foreign stores), and every page is a request that has
+# to fit inside the workflow's generator timeout.
+PAGES_PER_QUERY = 4
+
+# Seconds to wait before the single retry of a failed search page.  Short
+# because the failures measured were transient timeouts, not rate limits.
+SEARCH_RETRY_BACKOFF = 2
 
 HEADERS = {
     "User-Agent":
@@ -634,7 +658,53 @@ def store_is_available(response, html):
     return True
 
 
-def discover(queries=None, max_results=None, on_query=None):
+#: _search_page outcome meaning "this query has nothing left to give",
+#: as distinct from an empty list, which means "this page failed twice".
+#: A sentinel rather than None so the two cannot be confused by accident.
+EXHAUSTED = object()
+
+
+def _search_page(ddgs, keyword, page, max_results):
+    """One page of search results.  Retried once, never raises.
+
+    Returns the list of results, EXHAUSTED when the query has run out of
+    pages, or [] when the page failed twice.
+
+    ddgs signals "no more results" by raising rather than by returning an
+    empty list, and a timeout raises too, so the two are told apart by
+    class:
+
+      TimeoutException / RatelimitException   transient - worth retrying
+      DDGSException (the base class itself)   "No results found." - the
+                                              query is out of pages, and
+                                              retrying cannot change that
+      anything else                           unexpected, so treated as
+                                              transient: one retry, then
+                                              give up on the page
+
+    Retries are capped at exactly one, so a query costs at most
+    2 x PAGES_PER_QUERY requests and a run can never loop here.
+    """
+    for attempt in (1, 2):
+        try:
+            return ddgs.text(keyword, max_results=max_results, page=page)
+        except (TimeoutException, RatelimitException):
+            pass  # transient - fall through to the retry
+        except DDGSException:
+            # The base class, i.e. not one of the two transient
+            # subclasses above: this query is simply out of results.
+            return EXHAUSTED
+        except Exception:
+            pass  # unknown failure, treated as transient
+
+        if attempt == 1:
+            time.sleep(SEARCH_RETRY_BACKOFF)
+
+    return []
+
+
+def discover(queries=None, max_results=None, on_query=None,
+             pages=None):
     """Yield candidate sites one at a time, query by query.
 
     A generator rather than a list so a run can stop the moment it has
@@ -642,11 +712,24 @@ def discover(queries=None, max_results=None, on_query=None):
     requests, and most runs will hit their target long before the end.
     Queries are only sent as the consumer keeps asking.
 
-    Each URL is yielded at most once per run, even when several queries
-    return it.
+    Each query is read to PAGES_PER_QUERY pages deep, in order, page 1
+    first.  Pagination of a query stops early the moment that query
+    reports no more results - there is nothing behind an exhausted page,
+    and asking for page 4 of a query that ended at page 2 only wastes a
+    request.  A page that FAILED twice is skipped instead, because a
+    timeout says nothing about whether the next page has results.
+
+    Each DOMAIN is yielded at most once per run.  Deduplication is on
+    clean_url(), not on the raw URL: search results are overwhelmingly
+    deep links, so one shop arrives as several URLs - /products/x,
+    /collections/y, the homepage - and main.py reduces every one of them
+    to the same domain before doing anything with it.  Keying on the URL
+    spent candidate slots re-yielding shops already seen (15 of 210 in
+    one measured sweep).
     """
     queries = list(queries if queries is not None else KEYWORDS)
     max_results = max_results or MAX_RESULTS_PER_QUERY
+    pages = pages or PAGES_PER_QUERY
     seen = set()
 
     with DDGS() as ddgs:
@@ -654,28 +737,32 @@ def discover(queries=None, max_results=None, on_query=None):
             if on_query:
                 on_query(keyword)
 
-            try:
-                results = ddgs.text(keyword, max_results=max_results)
-            except Exception:
-                # One failing query must not end the whole run.
-                continue
+            for page in range(1, pages + 1):
+                results = _search_page(ddgs, keyword, page, max_results)
 
-            for position, result in enumerate(results, start=1):
-                url = result.get("href")
-                title = result.get("title")
+                if results is EXHAUSTED:
+                    break  # no more pages for this query
 
-                if not url or url in seen or is_ignored_host(url):
-                    continue
+                for position, result in enumerate(results, start=1):
+                    url = result.get("href")
+                    title = result.get("title")
 
-                seen.add(url)
-                yield {
-                    "business": title,
-                    "website": url,
-                    "sources": [{"query": keyword, "position": position,
-                                 "title": title}],
-                }
+                    if not url or is_ignored_host(url):
+                        continue
 
-            time.sleep(1)  # be polite to DDG between queries
+                    domain = clean_url(url)
+                    if not domain or domain in seen:
+                        continue
+
+                    seen.add(domain)
+                    yield {
+                        "business": title,
+                        "website": url,
+                        "sources": [{"query": keyword, "position": position,
+                                     "title": title, "page": page}],
+                    }
+
+                time.sleep(1)  # be polite to DDG between pages
 
 
 def search_websites(queries=None, max_results=None):
