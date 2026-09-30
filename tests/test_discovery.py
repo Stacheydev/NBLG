@@ -41,6 +41,7 @@ class FakeDDGS:
         self.pages = dict(pages)
         self.calls = []          # every (query, page) asked for, in order
         self.max_results_seen = []
+        self.kwargs_seen = []    # the extra search parameters, per request
 
     def __enter__(self):
         return self
@@ -48,9 +49,10 @@ class FakeDDGS:
     def __exit__(self, *exc):
         return False
 
-    def text(self, query, max_results=None, page=1):
+    def text(self, query, max_results=None, page=1, **kwargs):
         self.calls.append((query, page))
         self.max_results_seen.append(max_results)
+        self.kwargs_seen.append(kwargs)
         outcome = self.pages.get((query, page))
 
         if outcome is None:
@@ -128,9 +130,16 @@ def test_pages_per_query_is_four():
     assert scraper.PAGES_PER_QUERY == 4
 
 
-def test_max_results_per_query_is_unchanged():
-    """Pagination was the fix; widening each page was not."""
-    assert scraper.MAX_RESULTS_PER_QUERY == 10
+def test_max_results_per_query_sets_the_provider_fan_out():
+    """50 is a PROVIDER-WIDTH setting, not a page size.
+
+    ddgs never gives this to a search engine; it derives
+    min(providers, ceil(max_results / 10) + 1) worker slots from it, so 10
+    consulted 2 of 7 providers and 50 consults 6.  Measured over a full
+    28-query sweep, 50 plus SEARCH_REGION found 320 unseen domains
+    against 143 (+124%) for 14% more search time.
+    """
+    assert scraper.MAX_RESULTS_PER_QUERY == 50
 
 
 def test_a_page_never_goes_past_pages_per_query(fake):
@@ -159,6 +168,67 @@ def test_the_default_max_results_reaches_the_provider(fake):
     list(scraper.discover(queries=["q"], pages=1))
 
     assert ddgs.max_results_seen == [scraper.MAX_RESULTS_PER_QUERY]
+
+
+# ============================================================
+# BACKEND AND REGION
+# ============================================================
+#
+# Neither is a knob a caller may vary: they are the measured discovery
+# configuration, so they are asserted as constants AND as reaching every
+# single request.  A page that quietly went out on the ddgs defaults
+# (backend="auto", region="us-en") would search a different web than the
+# one these settings were measured against.
+
+def test_search_backend_names_real_engines_only():
+    """backend="auto" ranks wikipedia (2) and grokipedia (1.9) above every
+    real engine (1), spending worker slots on encyclopedias that
+    IGNORED_HOSTS discards."""
+    assert scraper.SEARCH_BACKEND == (
+        "google,duckduckgo,brave,mojeek,yandex,yahoo,startpage"
+    )
+    for encyclopedia in ("wikipedia", "grokipedia"):
+        assert encyclopedia not in scraper.SEARCH_BACKEND
+
+
+def test_search_region_is_lebanon_english():
+    """The ddgs default is "us-en", which searches a different web: the
+    Lebanon locale is where the measured +124% came from."""
+    assert scraper.SEARCH_REGION == "lb-en"
+
+
+def test_the_backend_reaches_every_page(fake):
+    ddgs = fake({("q", p): [result(f"https://p{p}.com")] for p in (1, 2, 3, 4)})
+
+    list(scraper.discover(queries=["q"]))
+
+    assert [kw.get("backend") for kw in ddgs.kwargs_seen] == [
+        scraper.SEARCH_BACKEND
+    ] * 4
+
+
+def test_the_region_reaches_every_page(fake):
+    ddgs = fake({("q", p): [result(f"https://p{p}.com")] for p in (1, 2, 3, 4)})
+
+    list(scraper.discover(queries=["q"]))
+
+    assert [kw.get("region") for kw in ddgs.kwargs_seen] == [
+        scraper.SEARCH_REGION
+    ] * 4
+
+
+def test_the_retry_of_a_failed_page_keeps_backend_and_region(fake):
+    """The retry must search the same web as the first attempt."""
+    ddgs = fake({
+        ("q", 1): once(TimeoutException("t"), [result("https://x.com")]),
+    })
+
+    list(scraper.discover(queries=["q"], pages=1))
+
+    assert len(ddgs.kwargs_seen) == 2  # attempt, then retry
+    for kw in ddgs.kwargs_seen:
+        assert kw["backend"] == scraper.SEARCH_BACKEND
+        assert kw["region"] == scraper.SEARCH_REGION
 
 
 # ============================================================

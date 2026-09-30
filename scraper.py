@@ -87,7 +87,39 @@ KEYWORDS = [
     'Lebanon online store food gourmet',
 ]
 
-MAX_RESULTS_PER_QUERY = 10
+# Despite the name, ddgs does NOT pass this to the search engines - they
+# only ever receive `page`.  It derives the PROVIDER FAN-OUT from it:
+#
+#   max_workers = min(unique_providers, ceil(max_results / 10) + 1)
+#
+# so 10 consults 2 of the 7 available providers and 50 consults 6.  It is
+# a width dial, not a depth dial, and the results are the union of those
+# providers' page N, de-duplicated on href and truncated to this value.
+#
+# Measured over a full 28-query sweep against the live database: 10 found
+# 143 unseen domains, 50 with the region below found 320 (+124%), while
+# search time rose only 14% (727s -> 828s).
+MAX_RESULTS_PER_QUERY = 50
+
+# Real web indexes only.  backend="auto" sorts by engine priority, and
+# wikipedia (2) and grokipedia (1.9) outrank every real engine (1) - so
+# two of the six worker slots went to encyclopedias whose hits
+# IGNORED_HOSTS then discarded.
+SEARCH_BACKEND = "google,duckduckgo,brave,mojeek,yandex,yahoo,startpage"
+
+# Lebanon/English locale, in place of the ddgs default of "us-en".  This
+# is where the gain measured above actually comes from: widening the
+# providers alone was worth only +6% (152 domains, none of which
+# qualified).  The region is what changes WHICH pages come back - google
+# turns it into cr=countryLB + lr=lang_en, and duckduckgo, mojeek and
+# startpage each bias regionally too (yahoo, yandex and grokipedia ignore
+# it, which is the other reason the width above matters: it guarantees
+# the region-aware engines are among those consulted).
+#
+# The trade is not free.  Measured, the Lebanon view misses ~68 domains
+# the us-en view finds - which qualified at the same rate as everything
+# else - and gains ~236 it never sees.
+SEARCH_REGION = "lb-en"
 
 # How deep to read each query.  DuckDuckGo returns ten results a page and
 # discovery used to read only the first, which is what exhausted the
@@ -687,7 +719,8 @@ def _search_page(ddgs, keyword, page, max_results):
     """
     for attempt in (1, 2):
         try:
-            return ddgs.text(keyword, max_results=max_results, page=page)
+            return ddgs.text(keyword, max_results=max_results, page=page,
+                             backend=SEARCH_BACKEND, region=SEARCH_REGION)
         except (TimeoutException, RatelimitException):
             pass  # transient - fall through to the retry
         except DDGSException:
