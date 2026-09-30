@@ -25,13 +25,34 @@ jobs:
     # The job cap is the outer backstop.  The generator itself is capped
     # lower (GENERATOR_TIMEOUT) so that sync and commit always get to run
     # even when discovery overruns - see the "Run the lead generator"
-    # step.  Measured runs so far complete in 2-7 minutes.
-    timeout-minutes: 30
+    # step.
+    #
+    # The 2-7 minute runs this cap was originally sized against were read
+    # one search page deep.  PAGES_PER_QUERY is now 4, which is the whole
+    # point of the pagination fix, and a four-page run is a different
+    # shape of job: measured, a full 28-query sweep spends 423s in search
+    # alone and 7.1s analysing each candidate site.
+    timeout-minutes: 38
 
     env:
-      # Inner cap for the generator, leaving ~8 minutes of the job budget
-      # for the sync, the safety check, and the push.
-      GENERATOR_TIMEOUT: 22m
+      # Inner cap for the generator, still leaving ~8 minutes of the job
+      # budget for the sync, the safety check, and the push.
+      #
+      # Sized from measurement, not guessed.  main.py stops at
+      # TARGET_NEW_LEADS (10), so the binding cost is reaching ten leads,
+      # not exhausting the sweep.  At 8.1s per candidate (7.1s measured
+      # mean + main.py's politeness sleep) that is:
+      #
+      #   conversion 9.9% (historical, n=446)   ~15 min
+      #   conversion 8.0% (fresh sample, n=25)  ~19 min
+      #   conversion 6.0%                       ~25 min
+      #   conversion 5.0%                       ~30 min
+      #
+      # 22m only covered conversion down to ~7%, i.e. the first four-page
+      # run could plausibly have been killed just short of its tenth lead.
+      # 30m covers 5%, comfortably under both measured anchors, without
+      # reserving time no realistic run can use.
+      GENERATOR_TIMEOUT: 30m
 
     steps:
       - name: Check out the repository
