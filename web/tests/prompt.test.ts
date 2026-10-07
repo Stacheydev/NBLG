@@ -59,8 +59,13 @@ function goodResponse(messageText?: string) {
     status: 'success',
     website_opportunity: {
       category: 'price visibility',
+      // problem_type and shopper_impact are required: an opportunity has to
+      // name WHICH KIND of deficiency it is, so a working feature cannot be
+      // returned as a finding.
+      problem_type: 'hidden',
       observation:
         'Most product cards on the homepage show no price until you open the product.',
+      shopper_impact: 'Shoppers cannot compare pieces without clicking each one.',
       evidence: 'Olive Bowl and Beirut Vase have no price on the card',
       evidence_refs: ['pages[0].products[1].name', 'pages[0].products[2].name'],
       confidence: 0.8,

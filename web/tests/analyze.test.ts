@@ -59,7 +59,9 @@ const MODEL_REPLY = {
   status: 'success',
   website_opportunity: {
     category: 'price visibility',
+    problem_type: 'hidden',
     observation: 'Product cards show no price until you open the product.',
+    shopper_impact: 'Shoppers cannot compare without clicking each one.',
     evidence: 'Cedar Mug and Olive Bowl have no price on the card',
     evidence_refs: ['pages[0].products[0].name', 'pages[0].products[1].name'],
     confidence: 0.8,

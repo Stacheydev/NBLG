@@ -68,28 +68,69 @@ THE OBJECTIVE IS A REPLY, NOT A SALE.
 You are not selling anything in this message. You are giving the owner a \
 concrete reason to answer. If they reply, Hadi takes it from there.
 
+WHAT COUNTS AS AN OPPORTUNITY - READ THIS TWICE
+An opportunity is a GENUINE, ACTIONABLE PROBLEM: friction, a weakness, a \
+missing element, a confusing experience, or a clearly improvable part of \
+the shopping journey.
+
+THE PRESENCE OF A GOOD FEATURE IS NEVER AN OPPORTUNITY. If the site does \
+something well, that is not a reason to contact anyone. Only the ABSENCE or \
+the FAILURE of something is.
+
+  "Products show prices"                      -> NO opportunity
+  "Products do not show prices"               -> possible opportunity
+  "Search exists"                             -> NO opportunity
+  "Search exists but returns nothing useful"  -> possible opportunity
+  "There is a size guide"                     -> NO opportunity
+  "Clothing products give no sizing info"     -> possible opportunity
+
+Before you answer, ask yourself: "what is WRONG, MISSING or HARDER THAN IT \
+SHOULD BE here?" If the honest answer is "nothing I can see", that is the \
+right answer - return "no_strong_opportunity".
+
 THE OBSERVATION
 - Exactly one observation. Not a list.
+- It must describe something missing, hidden, unclear, inconsistent, \
+broken, or awkward. State what is wrong, not what exists.
 - It must be supported by the evidence provided. Cite what you used in \
 evidence_refs.
 - Concrete and checkable: "the Shop All grid doesn't show prices until you \
 open a product" is an observation. "your UX could be improved" is not.
-- If the evidence does not support a specific, defensible observation, set \
+- If the evidence does not support a specific, defensible PROBLEM, set \
 status to "no_strong_opportunity" and leave the message null. This is a \
-correct and expected answer - roughly as often as not. Never invent a \
-problem to fill the field. A wrong observation is far worse than none.
+correct and expected answer - more often than not, in fact. Never invent a \
+problem, and never dress a working feature up as one. A wrong or flattering \
+observation is far worse than none.
+
+NEVER EXPOSE HOW THE EVIDENCE IS STORED
+The evidence arrives as JSON with field names like shows_prices, \
+has_search, has_size_guide, nav_labels, products[0].price. Those are \
+internal to our tooling. Describe what a VISITOR would see, in plain \
+English. Never write a field name, a JSON fragment, "price=null", \
+"shows_prices: false", an array index, or a selector in the observation, \
+the evidence, the angle, or the message. Write "the product cards don't \
+show a price", not "shows_prices is false".
 
 THE MESSAGE
+Structure: specific problem -> why it may matter -> low-friction question.
+
 - Aim for ${WORDS_TARGET_MIN}-${WORDS_TARGET_MAX} words. Hard limits: no \
 fewer than ${WORDS_HARD_MIN}, no more than ${WORDS_HARD_MAX}.
 - Shorter is better. Never pad to reach a word count. A natural 30-word \
 message beats a 65-word one carrying filler.
 - Mention the store by name, naturally.
-- State the one observation, plainly, as something you noticed.
-- Say in a few words why it caught your attention.
+- State the one PROBLEM, plainly, as something you noticed.
+- Say in a few words why it might matter to their shoppers.
 - Mention Hadi and North Bound only where it reads naturally - one short \
-clause, not a introduction paragraph.
-- End with ONE low-friction question. Easy to answer with a yes.
+clause, not an introduction paragraph.
+- End with ONE low-friction question that invites THEIR perspective on that \
+specific issue - "was that deliberate?", "is that something you've looked \
+at?", "would it help to see what I mean?". Not a question whose answer is \
+obvious, and never one that asks them to agree with a compliment. \
+"Does that help your customers?" is exactly the wrong question.
+- The prospect should finish reading slightly curious about something they \
+had not noticed. If your message would make them think "yes, I know, that's \
+how I built it", you have written about a feature instead of a problem.
 
 NEVER DO THESE
 - Do not offer a free audit, review, or any free work.
@@ -151,21 +192,47 @@ export const RESPONSE_SCHEMA = {
     website_opportunity: {
       type: ['object', 'null'],
       additionalProperties: false,
-      required: ['category', 'observation', 'evidence', 'evidence_refs',
-        'confidence'],
+      required: ['category', 'problem_type', 'observation', 'shopper_impact',
+        'evidence', 'evidence_refs', 'confidence'],
       properties: {
         category: {
           type: 'string',
           description: 'Short label, e.g. "price visibility" or "navigation".',
         },
+        // Every allowed value names a DEFICIENCY. There is deliberately no
+        // option for "this works well": the schema itself makes a positive
+        // finding unexpressible, so a working feature cannot be returned as
+        // an opportunity even if the model is inclined to be agreeable.
+        problem_type: {
+          type: 'string',
+          enum: ['missing', 'hidden', 'unclear', 'inconsistent', 'broken',
+            'friction'],
+          description:
+            'Which kind of PROBLEM this is. If none of these honestly '
+            + 'applies, the finding is not an opportunity - return '
+            + 'no_strong_opportunity instead.',
+        },
         observation: {
           type: 'string',
-          description: 'One concrete, checkable sentence about the storefront.',
+          description:
+            'One concrete, checkable sentence describing what is WRONG, '
+            + 'MISSING or HARDER THAN IT SHOULD BE. Never a compliment, '
+            + 'never a description of a feature that works. Plain English '
+            + 'only - no field names, no JSON, no array indexes.',
+        },
+        shopper_impact: {
+          type: 'string',
+          description:
+            'One short sentence: what this costs a real shopper. Concrete, '
+            + 'not a revenue or conversion claim.',
         },
         evidence: {
           type: 'string',
           description:
-            'What in the supplied evidence shows this. Quote or describe it.',
+            'What in the supplied evidence shows this, in plain English a '
+            + 'person could verify by looking at the page. Name real things '
+            + 'a visitor sees (product names, menu labels). Never field '
+            + 'names, JSON fragments or "price=null".',
         },
         evidence_refs: {
           type: 'array',
@@ -414,6 +481,109 @@ export function checkGrounding(
 // MESSAGE VALIDATION
 // ============================================================
 
+// ============================================================
+// AN OPPORTUNITY MUST BE A PROBLEM
+// ============================================================
+
+/**
+ * Words that mark an absence, a failure, or friction.
+ *
+ * An observation with none of these is describing something that EXISTS and
+ * WORKS, which is never an opportunity. This caught a real failure: the
+ * analyzer told a prospect their product cards "already show the price...
+ * It's great for shoppers to see cost upfront", which identifies no problem
+ * and gives nobody a reason to reply.
+ */
+const DEFICIENCY_MARKERS: readonly RegExp[] = [
+  /\b(no|not|never|nothing|none|without|lacks?|lacking|missing|absent)\b/,
+  /\b(isn't|aren't|doesn't|don't|won't|can't|cannot|couldn't|didn't)\b/,
+  /\bn't\b/,
+  /\b(hidden|hides?|buried|obscured|unclear|ambiguous|confusing|vague)\b/,
+  /\b(hard|harder|difficult|awkward|slow|tedious|unintuitive)\b/,
+  /\b(broken|fails?|failing|error|empty|blank|placeholder|truncated)\b/,
+  /\b(inconsistent|mismatch(ed)?|duplicated?|conflicting|outdated)\b/,
+  /\b(only after|forces?|requires?|have to|has to|must first)\b/,
+  /\b(before you|until you|unless you)\b/,
+]
+
+/**
+ * Praise. Allowed in passing, but an observation built around one of these
+ * and nothing negative is a compliment, not a finding.
+ */
+const PRAISE_MARKERS: readonly RegExp[] = [
+  /\b(great|excellent|lovely|beautiful|gorgeous|impressive|fantastic)\b/,
+  /\b(nicely|nice job|well done|good job|love (your|the)|really like)\b/,
+  /\b(already (show|display|have|has|include)|does a (great|good) job)\b/,
+  /\b(clean|polished|professional|seamless|smooth)\s+(design|look|layout|experience|navigation|menu|site|store|grid)\b/,
+  // "clean and well organised" - praise that names no noun of its own.
+  /\bwell[-\s](organised|organized|laid\s?out|designed|structured|built|made|presented)\b/,
+]
+
+/**
+ * Internal shapes that must never reach a human.
+ *
+ * The evidence is handed to the model as JSON, and it will happily quote
+ * the field names back: a live message read 'each product entry has
+ * "price": null'. That is our storage format, not something a shop owner
+ * should ever see.
+ */
+const INTERNAL_IDENTIFIERS: readonly RegExp[] = [
+  /\b(shows_prices|has_search|has_size_guide|has_product_cards|nav_labels)\b/i,
+  /\b(evidence_refs|pages_fetched|opportunity_[a-z_]+|problem_type|shopper_impact)\b/i,
+  /\b(products|collections|pages|headings|ctas)\s*\[\s*\d+\s*\]/i,
+  /\bprice\s*[:=]\s*null\b/i,
+  /"[a-z_]+"\s*:\s*(null|true|false)/i,
+  /\b[a-z]+_[a-z]+\s*[:=]\s*(null|true|false)\b/i,
+  /\bjson\b/i,
+]
+
+export interface ProblemCheck {
+  ok: boolean
+  reason: string | null
+}
+
+/** Does this observation describe a problem rather than a feature? */
+export function checkIsProblem(observation: string): ProblemCheck {
+  const text = observation.toLowerCase()
+
+  const hasDeficiency = DEFICIENCY_MARKERS.some((p) => p.test(text))
+  if (!hasDeficiency) {
+    return {
+      ok: false,
+      reason: 'observation describes something that exists and works rather '
+        + 'than something missing, hidden, unclear or broken - the presence '
+        + 'of a good feature is not an opportunity',
+    }
+  }
+
+  const praise = PRAISE_MARKERS.find((p) => p.test(text))
+  if (praise) {
+    return {
+      ok: false,
+      reason: `observation reads as a compliment (${praise.source}) rather `
+        + 'than a problem',
+    }
+  }
+
+  return { ok: true, reason: null }
+}
+
+/** Is this text free of our internal evidence representation? */
+export function checkNoInternalIdentifiers(
+  text: string,
+  field: string,
+): ProblemCheck {
+  const leak = INTERNAL_IDENTIFIERS.find((p) => p.test(text))
+  if (leak) {
+    return {
+      ok: false,
+      reason: `${field} exposes internal evidence representation `
+        + `(${leak.source})`,
+    }
+  }
+  return { ok: true, reason: null }
+}
+
 export function wordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length
 }
@@ -443,6 +613,20 @@ export function checkMessage(message: string): MessageCheck {
   if (!message.includes('?')) {
     return { ok: false, reason: 'message has no question to reply to' }
   }
+
+  // A message built around praise asks the prospect to agree with a
+  // compliment, which earns no reply and wastes the first contact.
+  const praise = PRAISE_MARKERS.find((p) => p.test(haystack))
+  if (praise) {
+    return {
+      ok: false,
+      reason: `message compliments rather than raises a problem (${praise.source})`,
+    }
+  }
+
+  // Our storage format must never reach a shop owner.
+  const leak = checkNoInternalIdentifiers(message, 'message')
+  if (!leak.ok) return leak
 
   return { ok: true, reason: null }
 }
@@ -526,7 +710,39 @@ export function validateAnalysis(raw: unknown, evidence: Evidence): Analysis {
     return downgrade('failed', 'status was success with no message')
   }
 
-  // Grounding first: a message built on an invented observation must never
+  // Is this a PROBLEM at all? Checked before grounding, because a perfectly
+  // well-evidenced compliment is still not an opportunity - and that is the
+  // failure that reached a real prospect.
+  const problemType = typeof found.problem_type === 'string'
+    ? found.problem_type.trim().toLowerCase()
+    : ''
+  const ALLOWED_PROBLEM_TYPES = [
+    'missing', 'hidden', 'unclear', 'inconsistent', 'broken', 'friction',
+  ]
+  if (!ALLOWED_PROBLEM_TYPES.includes(problemType)) {
+    return downgrade(
+      'no_strong_opportunity',
+      `problem_type was ${String(found.problem_type)}, not one of `
+      + ALLOWED_PROBLEM_TYPES.join('/'),
+    )
+  }
+
+  const isProblem = checkIsProblem(observation)
+  if (!isProblem.ok) {
+    return downgrade('no_strong_opportunity', isProblem.reason)
+  }
+
+  // Our internal field names must not appear in anything a human reads.
+  for (const [field, text] of [
+    ['observation', observation],
+    ['evidence', statedEvidence],
+    ['outreach_angle', String(body.outreach_angle ?? '')],
+  ] as const) {
+    const leak = checkNoInternalIdentifiers(text, field)
+    if (!leak.ok) return downgrade('insufficient_evidence', leak.reason)
+  }
+
+  // Grounding: a message built on an invented observation must never
   // be shown, however well it reads.
   const grounding = checkGrounding(evidence, found.evidence_refs, statedEvidence)
   if (!grounding.grounded) {
