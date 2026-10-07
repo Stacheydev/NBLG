@@ -29,5 +29,8 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["api"]
+  // tests/ is checked here too: it imports from api/ and must resolve
+  // under the same nodenext rules, so a missing .js extension in a test
+  // is a typecheck error rather than a runtime surprise.
+  "include": ["api", "tests", "vitest.config.ts"]
 }

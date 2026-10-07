@@ -243,10 +243,63 @@ def test_the_schema_stores_only_the_three_lead_fields(db):
     connection.close()
 
     assert {"business_name", "instagram_url", "website"} <= columns
-    # No scoring or calibration columns may reappear.
+
+    # The calibration apparatus must not reappear.  qualification.py is
+    # explicit that the old score/band/"review" state existed to feed a
+    # calibration workflow that is no longer part of the product, and
+    # resurrecting a column that gates qualification is what this guards.
+    #
+    # `instagram_followers` was on this list and is now a stored column.
+    # That is a deliberate, narrower change, not the old scorer coming back:
+    # it is a raw measurement used only by scoring.py to ORDER leads that
+    # have ALREADY qualified, and qualification.py never reads it from here
+    # (it fetches followers itself, live, for the Rule 3 brand test).  The
+    # test below this one holds the line that actually matters.
     for gone in ("decision", "score", "reasons", "signals_json",
-                 "instagram_followers", "dominant_vendor", "status"):
+                 "dominant_vendor", "status", "band", "review"):
         assert gone not in columns, f"{gone} is back in the schema"
+
+
+def test_no_stored_column_can_gate_qualification(db):
+    """The invariant the forbidden-column list above exists to protect.
+
+    Contact priority is allowed to be stored because it only ORDERS leads
+    that already passed.  What must never return is a stored value that
+    decides WHETHER a lead qualifies - so qualification must not read the
+    leads table at all, and its Decision must carry no score or band.
+    """
+    import ast
+    import qualification
+
+    # qualification.py must not touch the database.  Checked on the AST, not
+    # the text: its docstring legitimately discusses database.py.
+    qual_tree = ast.parse((ROOT / "qualification.py").read_text(encoding="utf-8"))
+    imported = {
+        alias.name.split(".")[0]
+        for node in ast.walk(qual_tree)
+        if isinstance(node, ast.Import)
+        for alias in node.names
+    } | {
+        node.module.split(".")[0]
+        for node in ast.walk(qual_tree)
+        if isinstance(node, ast.ImportFrom) and node.module
+    }
+    assert "database" not in imported
+
+    # Decision stays a binary verdict: qualified + a machine-readable reason.
+    assert set(qualification.Decision.__dataclass_fields__) == {
+        "qualified", "reason", "detail", "signals",
+    }
+
+    # Nothing in main.py may let the priority score influence the verdict:
+    # scoring must be called strictly after the qualified/not branch.
+    tree = ast.parse((ROOT / "main.py").read_text(encoding="utf-8"))
+    calls = [
+        node.func.attr
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+    ]
+    assert calls.index("qualify") < calls.index("score")
 
 
 # ============================================================

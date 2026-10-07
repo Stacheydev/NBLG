@@ -49,12 +49,23 @@ TABLE = "leads"
 # shape is stated in a single place rather than implied by the builder.
 SUPABASE_FIELDS = (
     "domain", "business_name", "instagram_url", "website_url", "created_at",
+    # Contact priority - the heuristic ordering from scoring.py.
+    "contact_priority_score", "contact_priority", "contact_priority_reasons",
+    # Signals weighted by that score.
+    "instagram_followers", "has_email", "has_phone", "has_whatsapp",
+    "dominant_share", "lebanon_signal_tier",
+    # Recorded at weight zero, for retuning later.
+    "industry", "city", "hreflang_count", "has_sentry", "has_store_locator",
 )
 
 # `id` is selected because it is the high-water mark the caller filters
 # on; it is deliberately NOT sent to Supabase (see build_payload).
 SELECT_NEW_LEADS = """
-    SELECT id, business_name, instagram_url, website, domain, created_at
+    SELECT id, business_name, instagram_url, website, domain, created_at,
+           contact_priority_score, contact_priority, contact_priority_reasons,
+           instagram_followers, has_email, has_phone, has_whatsapp,
+           dominant_share, lebanon_signal_tier,
+           industry, city, hreflang_count, has_sentry, has_store_locator
     FROM leads
     WHERE id > ?
     ORDER BY id ASC
@@ -111,7 +122,15 @@ def build_payload(rows):
     `id`, `identity_key` and `aka_domains` are absent on purpose: they are
     local bookkeeping for deduplication, not lead data, and `id` is only
     meaningful inside this one database file.
+
+    The contact-priority and signal fields are passed through verbatim, and
+    are None for any lead generated before scoring existed.  SQLite stores
+    the three booleans as 0/1, so they are converted back to real booleans
+    (leaving None as None) for the Postgres `boolean` columns.
     """
+    def flag(value):
+        return None if value is None else bool(value)
+
     return [
         {
             "domain": row["domain"],
@@ -119,6 +138,23 @@ def build_payload(rows):
             "instagram_url": row["instagram_url"],
             "website_url": row["website"],
             "created_at": row["created_at"],
+
+            "contact_priority_score": row["contact_priority_score"],
+            "contact_priority": row["contact_priority"],
+            "contact_priority_reasons": row["contact_priority_reasons"],
+
+            "instagram_followers": row["instagram_followers"],
+            "has_email": flag(row["has_email"]),
+            "has_phone": flag(row["has_phone"]),
+            "has_whatsapp": flag(row["has_whatsapp"]),
+            "dominant_share": row["dominant_share"],
+            "lebanon_signal_tier": row["lebanon_signal_tier"],
+
+            "industry": row["industry"],
+            "city": row["city"],
+            "hreflang_count": row["hreflang_count"],
+            "has_sentry": flag(row["has_sentry"]),
+            "has_store_locator": flag(row["has_store_locator"]),
         }
         for row in rows
     ]

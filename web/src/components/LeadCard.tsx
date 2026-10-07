@@ -1,6 +1,8 @@
 import type { Lead } from '../types'
 import { exactTime, hostname, instagramHandle, relativeTime } from '../lib/format'
 import ExternalLink from './ExternalLink'
+import LeadAnalysis from './LeadAnalysis'
+import PriorityBadge from './PriorityBadge'
 
 interface LeadCardProps {
   lead: Lead
@@ -42,6 +44,19 @@ export default function LeadCard({ lead }: LeadCardProps) {
           </span>
         )}
       </div>
+
+      <div className="mt-3 flex items-baseline gap-2">
+        {/* "heuristic" is part of the label, not a footnote: this orders
+            qualified leads by observable signals and is not a predicted
+            reply rate. */}
+        <span className="text-[11px] font-semibold uppercase tracking-wider
+          text-slate-400 dark:text-slate-500">
+          Contact priority — heuristic
+        </span>
+        <PriorityBadge lead={lead} />
+      </div>
+
+      <LeadAnalysis lead={lead} />
     </li>
   )
 }

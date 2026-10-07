@@ -60,15 +60,66 @@ CREATE TABLE IF NOT EXISTS rejected_sites (
 );
 """
 
+# Columns added after the first release, so they cannot go in SCHEMA above:
+# an existing database already has a `leads` table and CREATE TABLE IF NOT
+# EXISTS will not alter it.  SQLite has no ADD COLUMN IF NOT EXISTS, so
+# _migrate() checks PRAGMA table_info first.
+#
+# Every one is nullable with no default.  The leads generated before this
+# feature existed stay NULL and read as "not scored" - they are deliberately
+# NOT backfilled, which would mean re-fetching every site.
+#
+# The first three are the heuristic contact priority (see scoring.py).  The
+# next six are the signals that CARRY WEIGHT in it.  The last five are
+# recorded at weight zero so the score can be retuned against real outreach
+# outcomes later without re-fetching anything.
+LEAD_COLUMNS_ADDED = (
+    ("contact_priority_score", "INTEGER"),
+    ("contact_priority", "TEXT"),
+    ("contact_priority_reasons", "TEXT"),
+
+    ("instagram_followers", "INTEGER"),
+    ("has_email", "INTEGER"),
+    ("has_phone", "INTEGER"),
+    ("has_whatsapp", "INTEGER"),
+    ("dominant_share", "REAL"),
+    ("lebanon_signal_tier", "TEXT"),
+
+    ("industry", "TEXT"),
+    ("city", "TEXT"),
+    ("hreflang_count", "INTEGER"),
+    ("has_sentry", "INTEGER"),
+    ("has_store_locator", "INTEGER"),
+)
+
+
+def _migrate(connection):
+    """Add any LEAD_COLUMNS_ADDED the `leads` table does not have yet.
+
+    Additive only: no column is dropped, renamed or retyped, and no existing
+    row is rewritten.  ADD COLUMN on SQLite is a metadata-only change, so
+    this stays instant however many leads are stored.
+    """
+    existing = {
+        row["name"]
+        for row in connection.execute("PRAGMA table_info(leads)")
+    }
+
+    for name, column_type in LEAD_COLUMNS_ADDED:
+        if name not in existing:
+            connection.execute(f"ALTER TABLE leads ADD COLUMN {name} {column_type}")
+
 
 def create_database():
     """Create the database and its tables if they do not exist yet.
 
     Safe to call on every run: the schema uses CREATE TABLE IF NOT
-    EXISTS, so an existing database is opened and reused untouched.
+    EXISTS, so an existing database is opened and reused untouched, and
+    _migrate() only ever adds columns that are missing.
     """
     connection = _connect()
     connection.executescript(SCHEMA)
+    _migrate(connection)
     connection.commit()
     connection.close()
 
@@ -180,22 +231,40 @@ def mark_checked(domain, result):
 # WRITING A LEAD
 # ==========================
 
-def add_lead(business_name, instagram_url, website, domain):
-    """Insert one qualified lead.  Returns True when a row was written."""
+def add_lead(business_name, instagram_url, website, domain, metrics=None):
+    """Insert one qualified lead.  Returns True when a row was written.
+
+    `metrics` is the optional contact-priority and signal record built by
+    main.py from scoring.score() plus the signals already in hand.  Only keys
+    named in LEAD_COLUMNS_ADDED are stored; anything else is ignored, so a
+    caller cannot widen the row by accident.  Omitting it entirely writes the
+    lead with those columns NULL, which is exactly what the pre-scoring
+    callers and the existing tests do.
+    """
     record = {
         "business_name": business_name,
         "domain": domain,
         "instagram": instagram_url,
     }
 
+    allowed = [name for name, _ in LEAD_COLUMNS_ADDED]
+    extra = {
+        name: (metrics or {}).get(name)
+        for name in allowed
+        if (metrics or {}).get(name) is not None
+    }
+
+    columns = ["business_name", "instagram_url", "website", "domain",
+               "identity_key", "aka_domains", "created_at", *extra]
+    values = [business_name, instagram_url, website, domain,
+              identity.identity_key(record), None, _now(), *extra.values()]
+    placeholders = ", ".join("?" for _ in columns)
+
     connection = _connect()
     try:
         connection.execute(
-            "INSERT INTO leads (business_name, instagram_url, website, "
-            "domain, identity_key, aka_domains, created_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (business_name, instagram_url, website, domain,
-             identity.identity_key(record), None, _now()),
+            f"INSERT INTO leads ({', '.join(columns)}) VALUES ({placeholders})",
+            tuple(values),
         )
         connection.commit()
         written = True

@@ -1,6 +1,7 @@
 import type { Lead } from '../types'
 import { exactTime, hostname, instagramHandle, relativeTime } from '../lib/format'
 import ExternalLink from './ExternalLink'
+import PriorityBadge from './PriorityBadge'
 
 interface LeadsTableProps {
   leads: Lead[]
@@ -32,10 +33,11 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
     <div className="hidden rounded-lg border border-slate-200 bg-white md:block dark:border-slate-800 dark:bg-slate-900">
       <table className="w-full table-fixed border-collapse text-sm [&>tbody>tr:last-child>td:first-child]:rounded-bl-lg [&>tbody>tr:last-child>td:last-child]:rounded-br-lg">
         <colgroup>
-          <col className="w-[38%]" />
+          <col className="w-[30%]" />
+          <col className="w-[16%]" />
+          <col className="w-[18%]" />
           <col className="w-[22%]" />
-          <col className="w-[25%]" />
-          <col className="w-[15%]" />
+          <col className="w-[14%]" />
         </colgroup>
 
         <thead>
@@ -43,6 +45,12 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
             {/* Outer cells round with the wrapper, which can no longer clip. */}
             <th scope="col" className={`${headerCell} rounded-tl-lg`}>
               Business
+            </th>
+            {/* "heuristic" is part of the name: this orders qualified
+                leads by observable signals and is NOT a predicted reply
+                rate. The score's component breakdown is on hover. */}
+            <th scope="col" className={headerCell}>
+              Priority — heuristic
             </th>
             <th scope="col" className={headerCell}>
               Instagram
@@ -69,6 +77,10 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                 <div className="truncate font-mono text-xs text-slate-500 dark:text-slate-400">
                   {lead.domain}
                 </div>
+              </td>
+
+              <td className="px-4 py-3">
+                <PriorityBadge lead={lead} />
               </td>
 
               <td className="px-4 py-3">
