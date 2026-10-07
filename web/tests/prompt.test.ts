@@ -41,10 +41,10 @@ function page(overrides: Partial<PageEvidence> = {}): PageEvidence {
       { name: 'Beirut Vase', price: null },
     ],
     ctas: ['Add to cart', 'Shop now'],
-    has_search: true,
-    has_size_guide: false,
-    has_product_cards: true,
-    shows_prices: true,
+    price_detection: 'present',
+    search_detection: 'present',
+    size_guide_detection: 'unknown',
+    product_card_detection: 'present',
     ...overrides,
   }
 }
@@ -221,8 +221,14 @@ describe('resolveRef', () => {
     )
   })
 
-  it('resolves a boolean field, including false', () => {
-    expect(resolveRef(sample, 'pages[0].has_size_guide')).toBe(false)
+  it('resolves a detection field, including unknown', () => {
+    // The booleans became tri-state. 'unknown' is a real resolved VALUE -
+    // distinguishable from NOT_FOUND - and checkGrounding then refuses to
+    // build a finding on it.
+    expect(resolveRef(sample, 'pages[0].size_guide_detection')).toBe('unknown')
+    expect(resolveRef(sample, 'pages[0].price_detection')).toBe('present')
+    expect(resolveRef(sample, 'pages[0].size_guide_detection'))
+      .not.toBe(NOT_FOUND)
   })
 
   it('treats a bare path as page 0', () => {
@@ -333,23 +339,51 @@ describe('checkGrounding', () => {
       .toBe(false)
   })
 
-  it('grounds the live case: no prices, cited via a null price field', () => {
-    // Verbatim shape of what the model returned for Guava Lebanon.
-    expect(checkGrounding(
+  it('REFUSES the live Guava citation, because a null price is not an absence', () => {
+    // This assertion is deliberately the inverse of what it used to be.
+    //
+    // It previously required that a null price field could ground a "no
+    // prices" claim. That is precisely what let the analyzer tell Guava
+    // Lebanon their cards showed no prices when all 75 of them did: our
+    // parser had dropped the prices, and null meant "not extracted", not
+    // "not shown". On this fixture price_detection is 'present', so the
+    // claim must now be refused.
+    const result = checkGrounding(
       sample,
-      ['pages[0].products[1].price', 'pages[0].shows_prices'],
-      'All product entries have "price": null and the page flag '
-      + '"shows_prices": false, indicating prices are not shown on cards.',
-    ).grounded).toBe(true)
+      ['pages[0].products[1].price', 'pages[0].price_detection'],
+      'All product entries have no price, so prices are not shown on cards.',
+    )
+    expect(result.grounded).toBe(false)
+    expect(result.reason).toBeTruthy()
   })
 
-  it('supports a claim about an absent feature via the field name', () => {
-    // "no size guide" has no supporting string VALUE - has_size_guide is
-    // false - so the field name has to count as support.
-    expect(checkGrounding(
+  it('refuses a claim resting on an unknown detection', () => {
+    // Also an inversion. size_guide_detection is 'unknown' because a
+    // substring miss cannot establish that a size guide is missing - the
+    // markup may simply be shaped in a way we do not recognise. So "there
+    // is no size guide" is no longer groundable, by design.
+    const result = checkGrounding(
       sample,
-      ['pages[0].has_size_guide'],
+      ['pages[0].size_guide_detection'],
       'there is no size guide',
+    )
+    expect(result.grounded).toBe(false)
+    expect(result.reason).toContain('unknown')
+  })
+
+  it('supports a claim about a feature positively established as absent', () => {
+    // The capability is preserved where absence is real: a page with
+    // product cards and no price markup anywhere yields 'absent', and a
+    // claim citing it grounds.
+    const absent: Evidence = {
+      ...sample,
+      pages: [{ ...sample.pages[0]!, price_detection: 'absent',
+        products: [{ name: 'Cedar Mug', price: null }] }],
+    }
+    expect(checkGrounding(
+      absent,
+      ['pages[0].price_detection'],
+      'none of the product cards show a price',
     ).grounded).toBe(true)
   })
 })

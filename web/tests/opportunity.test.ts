@@ -40,10 +40,10 @@ function page(overrides: Partial<PageEvidence> = {}): PageEvidence {
       { name: 'Linen Kaftan', price: '$480.00' },
     ],
     ctas: ['Add to cart'],
-    has_search: true,
-    has_size_guide: true,
-    has_product_cards: true,
-    shows_prices: true,
+    price_detection: 'present',
+    search_detection: 'present',
+    size_guide_detection: 'present',
+    product_card_detection: 'present',
     ...overrides,
   }
 }
@@ -61,7 +61,7 @@ const UNPRICED: Evidence = {
       { name: 'Yasmine Crepe Silk Tareq Embroidered Dress', price: null },
       { name: 'Linen Kaftan', price: null },
     ],
-    shows_prices: false,
+    price_detection: 'absent',
   })],
   pages_fetched: 1,
 }
@@ -89,7 +89,7 @@ const VALID_OPPORTUNITY: Opportunity = {
   shopper_impact: 'Shoppers cannot compare pieces without clicking each one.',
   evidence:
     'Yasmine Crepe Silk Tareq Embroidered Dress shows no price on the card',
-  evidence_refs: ['pages[0].products[0].price', 'pages[0].shows_prices'],
+  evidence_refs: ['pages[0].products[0].price', 'pages[0].price_detection'],
   confidence: 0.8,
 }
 
@@ -199,7 +199,7 @@ describe('positive findings degrade to no_strong_opportunity', () => {
       observation: 'The storefront has a working search box in the header.',
       shopper_impact: 'Shoppers can find things.',
       evidence: 'a search field is present',
-      evidence_refs: ['pages[0].has_search'],
+      evidence_refs: ['pages[0].search_detection'],
     }), PRICED)
 
     expect(result.status).toBe('no_strong_opportunity')

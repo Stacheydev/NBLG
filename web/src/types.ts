@@ -38,7 +38,21 @@ export interface LeadAnalysis {
   opportunity_evidence: string | null
   opportunity_confidence: number | null
   outreach_angle: string | null
+  /** The EVIDENCE-BACKED message. Non-null only when status is `success`. */
   message: string | null
+
+  /**
+   * The generic opener, used when no verified opportunity was found.
+   *
+   * A separate column from `message` on purpose: anything in `message` has
+   * passed opportunity validation and anything here explicitly has not, so
+   * the two can never be confused by a reader - including after a reload.
+   */
+  fallback_message: string | null
+  fallback_category: string | null
+  /** Always false when a fallback exists. Never true. */
+  fallback_verified: boolean | null
+
   model: string | null
   pages_fetched: number | null
   analyzed_at: string
@@ -47,4 +61,5 @@ export interface LeadAnalysis {
 export const LEAD_ANALYSIS_COLUMNS =
   'domain,status,opportunity_category,opportunity_observation,' +
   'opportunity_evidence,opportunity_confidence,outreach_angle,message,' +
+  'fallback_message,fallback_category,fallback_verified,' +
   'model,pages_fetched,analyzed_at'

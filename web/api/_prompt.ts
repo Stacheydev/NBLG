@@ -102,14 +102,52 @@ correct and expected answer - more often than not, in fact. Never invent a \
 problem, and never dress a working feature up as one. A wrong or flattering \
 observation is far worse than none.
 
+'unknown' MEANS WE COULD NOT TELL - IT DOES NOT MEAN MISSING
+Some evidence fields carry 'present', 'absent' or 'unknown'. 'unknown' means
+our extractor could not establish the state. It is NOT evidence that the
+feature is missing, and you must never treat it as a fault.
+
+  price_detection: 'present'  prices are shown        -> no opportunity
+  price_detection: 'absent'   prices are genuinely    -> possible opportunity
+                              not shown
+  price_detection: 'unknown'  we could not tell       -> NOT an opportunity
+
+A product whose price reads null means we did not extract one. Unless
+price_detection for that page is 'absent', that tells you nothing about
+whether the shop shows prices. We once told a shop their product cards had
+no prices when every one of them did - our parser had dropped them. Do not
+repeat that.
+
+TWO MODES: VERIFIED OPPORTUNITY, OR A GENERIC OPENER
+If you find a real, evidence-backed problem, set status "success" and fill
+website_opportunity and message, and set fallback_message to null.
+
+If you do NOT - which is common and correct - set status
+"no_strong_opportunity", leave website_opportunity and message null, and
+write a fallback_message instead: a short, honest conversation opener that
+claims NOTHING specific about their site.
+
+The fallback must not invent a problem, name a missing feature, describe
+their UX, or pay a compliment. It asks how they think about a broad area -
+the shopping experience, product discovery, the purchase journey - and
+invites a reply. Something like:
+
+"Hey [Store], I was browsing your site and was curious how you're thinking
+about the overall shopping experience, from finding a product to deciding
+whether to buy. I'm Hadi from North Bound. Is that something you've been
+looking at?"
+
+Never write "I noticed your product discovery is difficult" in a fallback.
+That is an invented observation. The fallback's honesty is the point.
+
 NEVER EXPOSE HOW THE EVIDENCE IS STORED
 The evidence arrives as JSON with field names like shows_prices, \
 has_search, has_size_guide, nav_labels, products[0].price. Those are \
 internal to our tooling. Describe what a VISITOR would see, in plain \
 English. Never write a field name, a JSON fragment, "price=null", \
-"shows_prices: false", an array index, or a selector in the observation, \
+"price_detection: absent", an array index, or a selector in the observation, \
 the evidence, the angle, or the message. Write "the product cards don't \
-show a price", not "shows_prices is false".
+show a price", not "price_detection is absent".
 
 THE MESSAGE
 Structure: specific problem -> why it may matter -> low-friction question.
@@ -181,7 +219,8 @@ this system message.`
 export const RESPONSE_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['status', 'website_opportunity', 'outreach_angle', 'message'],
+  required: ['status', 'website_opportunity', 'outreach_angle', 'message',
+    'fallback_message'],
   properties: {
     status: {
       type: 'string',
@@ -255,8 +294,17 @@ export const RESPONSE_SCHEMA = {
     message: {
       type: ['string', 'null'],
       description:
-        `The message to send, ${WORDS_HARD_MIN}-${WORDS_HARD_MAX} words. `
-        + 'Null unless status is success.',
+        `The evidence-backed message, ${WORDS_HARD_MIN}-${WORDS_HARD_MAX} `
+        + 'words. Null unless status is success.',
+    },
+    fallback_message: {
+      type: ['string', 'null'],
+      description:
+        'Used ONLY when status is no_strong_opportunity. A generic opener '
+        + `of ${WORDS_HARD_MIN}-${WORDS_HARD_MAX} words that claims nothing `
+        + 'specific about their site: no invented problem, no named missing '
+        + 'feature, no compliment. Asks how they think about a broad area '
+        + 'and invites a reply. Null when status is success.',
     },
   },
 } as const
@@ -422,8 +470,37 @@ export function checkGrounding(
   const citedPages = new Set<number>()
   for (const ref of refs) {
     const raw = String(ref)
-    if (resolveRef(evidence, raw) === NOT_FOUND) {
+    const value = resolveRef(evidence, raw)
+    if (value === NOT_FOUND) {
       return { grounded: false, reason: `evidence_ref did not resolve: ${ref}` }
+    }
+
+    // THE RULE THAT STOPS A PARSER BUG BECOMING A CRITICISM.
+    //
+    // 'unknown' means we could not establish the state - not that the
+    // feature is missing. A finding may never rest on one. This is what
+    // turns the Guava failure into "no strong opportunity" instead of
+    // "your product cards show no prices".
+    if (value === 'unknown') {
+      return {
+        grounded: false,
+        reason: `evidence_ref ${ref} is 'unknown' - the extractor could not `
+          + 'establish this, so it cannot support a finding',
+      }
+    }
+
+    // A null price means WE FOUND NO PRICE, which is only evidence of
+    // absence when the page-level detection says so.
+    if (value === null && /\.price$/.test(raw.trim())) {
+      const page = Number(/^pages\[(\d+)\]/.exec(raw.trim())?.[1] ?? 0)
+      if (evidence.pages[page]?.price_detection !== 'absent') {
+        return {
+          grounded: false,
+          reason: `evidence_ref ${ref} is a price we did not extract, and `
+            + 'price_detection is not \'absent\' - a missing extraction is '
+            + 'not a missing price',
+        }
+      }
     }
     // A bare ref is page 0; otherwise take the index it names.
     const index = Number(/^pages\[(\d+)\]/.exec(raw.trim())?.[1] ?? 0)
@@ -529,6 +606,9 @@ const PRAISE_MARKERS: readonly RegExp[] = [
  */
 const INTERNAL_IDENTIFIERS: readonly RegExp[] = [
   /\b(shows_prices|has_search|has_size_guide|has_product_cards|nav_labels)\b/i,
+  // The tri-state detection fields. These replaced the booleans above, and
+  // naming one in copy would be the same leak wearing a new name.
+  /\b(price|search|size_guide|product_card)_detection\b/i,
   /\b(evidence_refs|pages_fetched|opportunity_[a-z_]+|problem_type|shopper_impact)\b/i,
   /\b(products|collections|pages|headings|ctas)\s*\[\s*\d+\s*\]/i,
   /\bprice\s*[:=]\s*null\b/i,
@@ -635,11 +715,53 @@ export function checkMessage(message: string): MessageCheck {
 // FULL VALIDATION
 // ============================================================
 
+/** Verbs that assert a first-hand finding about the site. */
+const NOTICING_VERBS =
+  /\b(noticed|noticing|spotted|saw that|i see that|found that|realis|realiz|observed)\b/
+
+/**
+ * A fallback message must not smuggle in a website criticism.
+ *
+ * It runs through the same copy rules as a verified message, PLUS one more:
+ * it may not assert anything specific about the site. The fallback exists so
+ * we can open a conversation WITHOUT inventing a problem, so a fallback that
+ * invents one defeats its own purpose and is worse than no message.
+ */
+export function checkFallbackMessage(message: string): MessageCheck {
+  // All the ordinary rules first: length, banned pitches, praise, leaks.
+  const base = checkMessage(message)
+  if (!base.ok) return base
+
+  const text = message.toLowerCase()
+
+  // "I noticed ... doesn't / no / missing" - a fabricated observation.
+  if (NOTICING_VERBS.test(text) && DEFICIENCY_MARKERS.some((p) => p.test(text))) {
+    return {
+      ok: false,
+      reason: 'fallback asserts a specific website problem; a fallback must '
+        + 'claim nothing about the site it has not verified',
+    }
+  }
+
+  // "your checkout is confusing", "the navigation isn't clear"
+  if (/\b(your|the)\s+[a-z ]{3,30}\s+(is|are|isn't|aren't|looks|seems|feels)\s+(not\s+)?(confusing|unclear|hard|difficult|broken|missing|hidden|slow|awkward|cluttered)\b/.test(text)) {
+    return {
+      ok: false,
+      reason: 'fallback describes a specific weakness it has not verified',
+    }
+  }
+
+  return { ok: true, reason: null }
+}
+
 export type AnalysisStatus =
   | 'success'
   | 'no_strong_opportunity'
   | 'insufficient_evidence'
   | 'failed'
+
+/** The one category a fallback can have. Server-set, never model-set. */
+export const FALLBACK_CATEGORY = 'generic_shopping_experience'
 
 export interface Analysis {
   status: AnalysisStatus
@@ -649,7 +771,20 @@ export interface Analysis {
   evidence_refs: string[] | null
   opportunity_confidence: number | null
   outreach_angle: string | null
+  /** The EVIDENCE-BACKED message. Only ever set when status is success. */
   message: string | null
+
+  /**
+   * A generic conversation opener used when no verified opportunity exists.
+   *
+   * Deliberately a SEPARATE field from `message` so the two can never be
+   * confused: anything in `message` has passed opportunity validation, and
+   * anything here explicitly has not.
+   */
+  fallback_message: string | null
+  fallback_category: string | null
+  /** Always false when a fallback is present. Never true. */
+  fallback_verified: boolean
   /** Why a candidate success was downgraded. Server-side logging only. */
   rejected_reason: string | null
 }
@@ -662,10 +797,40 @@ const EMPTY: Omit<Analysis, 'status' | 'rejected_reason'> = {
   opportunity_confidence: null,
   outreach_angle: null,
   message: null,
+  fallback_message: null,
+  fallback_category: null,
+  fallback_verified: false,
 }
 
-function downgrade(status: AnalysisStatus, reason: string | null): Analysis {
-  return { status, ...EMPTY, rejected_reason: reason }
+/**
+ * Not a verified finding. Carries a generic opener when one survived its own
+ * validation, and nothing at all when it did not - never a message from the
+ * rejected opportunity.
+ */
+function downgrade(
+  status: AnalysisStatus,
+  reason: string | null,
+  fallback: string | null = null,
+): Analysis {
+  return {
+    status,
+    ...EMPTY,
+    ...(fallback
+      ? { fallback_message: fallback, fallback_category: FALLBACK_CATEGORY,
+          fallback_verified: false }
+      : {}),
+    rejected_reason: reason,
+  }
+}
+
+/** The fallback from a model reply, if it is usable. */
+function usableFallback(raw: unknown): string | null {
+  const body = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const candidate = typeof body.fallback_message === 'string'
+    ? body.fallback_message.trim()
+    : ''
+  if (!candidate) return null
+  return checkFallbackMessage(candidate).ok ? candidate : null
 }
 
 /**
@@ -683,8 +848,12 @@ export function validateAnalysis(raw: unknown, evidence: Evidence): Analysis {
   const body = raw as Record<string, unknown>
   const status = body.status
 
+  // Carried into every non-success outcome below, so a lead we decline to
+  // criticise still comes back with something Hadi can send.
+  const fallback = usableFallback(raw)
+
   if (status === 'no_strong_opportunity' || status === 'insufficient_evidence') {
-    return downgrade(status, null)
+    return downgrade(status, null, fallback)
   }
   if (status !== 'success') {
     return downgrade('failed', `unrecognised status: ${String(status)}`)
@@ -729,7 +898,7 @@ export function validateAnalysis(raw: unknown, evidence: Evidence): Analysis {
 
   const isProblem = checkIsProblem(observation)
   if (!isProblem.ok) {
-    return downgrade('no_strong_opportunity', isProblem.reason)
+    return downgrade('no_strong_opportunity', isProblem.reason, fallback)
   }
 
   // Our internal field names must not appear in anything a human reads.
@@ -739,19 +908,19 @@ export function validateAnalysis(raw: unknown, evidence: Evidence): Analysis {
     ['outreach_angle', String(body.outreach_angle ?? '')],
   ] as const) {
     const leak = checkNoInternalIdentifiers(text, field)
-    if (!leak.ok) return downgrade('insufficient_evidence', leak.reason)
+    if (!leak.ok) return downgrade('insufficient_evidence', leak.reason, fallback)
   }
 
   // Grounding: a message built on an invented observation must never
   // be shown, however well it reads.
   const grounding = checkGrounding(evidence, found.evidence_refs, statedEvidence)
   if (!grounding.grounded) {
-    return downgrade('insufficient_evidence', grounding.reason)
+    return downgrade('insufficient_evidence', grounding.reason, fallback)
   }
 
   const copy = checkMessage(message)
   if (!copy.ok) {
-    return downgrade('insufficient_evidence', copy.reason)
+    return downgrade('insufficient_evidence', copy.reason, fallback)
   }
 
   const confidence =
@@ -771,6 +940,11 @@ export function validateAnalysis(raw: unknown, evidence: Evidence): Analysis {
         ? body.outreach_angle.trim()
         : null,
     message,
+    // A verified finding never carries a fallback - the two are mutually
+    // exclusive by construction.
+    fallback_message: null,
+    fallback_category: null,
+    fallback_verified: false,
     rejected_reason: null,
   }
 }

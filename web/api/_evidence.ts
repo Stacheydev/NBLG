@@ -56,8 +56,31 @@ const SUFFICIENT_LABELS = 3
 // SHAPES
 // ============================================================
 
+/**
+ * What we were able to ESTABLISH about a feature - not what is true.
+ *
+ * This distinction is the whole point of the type. A fetch-and-parse of one
+ * HTML document can prove a feature is PRESENT, but it can almost never
+ * prove one is ABSENT: the markup may be shaped unexpectedly, rendered by
+ * JavaScript, or simply missed by our patterns.
+ *
+ *   'present'  we found it. Reliable.
+ *   'absent'   we positively established it is not there. Rare, and only
+ *              claimed when a miss cannot be explained by our own blind
+ *              spots.
+ *   'unknown'  we did not find it, and cannot tell whether that is because
+ *              it is missing or because we failed to see it.
+ *
+ * 'unknown' must NEVER be reported to a shop owner as a fault with their
+ * site. A live analysis told Guava Lebanon their product cards showed no
+ * prices; the prices were there, and our parser had dropped them.
+ */
+export type Detection = 'present' | 'absent' | 'unknown'
+
 export interface ProductEvidence {
   name: string
+  /** The price as shown, or null meaning WE DID NOT FIND ONE - which is not
+   *  the same as the product having no price. See `price_detection`. */
   price: string | null
 }
 
@@ -70,10 +93,11 @@ export interface PageEvidence {
   collections: string[]
   products: ProductEvidence[]
   ctas: string[]
-  has_search: boolean
-  has_size_guide: boolean
-  has_product_cards: boolean
-  shows_prices: boolean
+  /** Established state, never a bare boolean - see Detection. */
+  price_detection: Detection
+  search_detection: Detection
+  size_guide_detection: Detection
+  product_card_detection: Detection
 }
 
 export interface Evidence {
@@ -202,32 +226,75 @@ function matchAll(html: string, pattern: RegExp): string[] {
 
 const PRICE = /(?:USD|LBP|\$|£|€)\s?\d[\d.,]*|\d[\d.,]*\s?(?:USD|LBP)/i
 
+/** How far past an anchor a price may sit and still belong to that card. */
+const PRICE_WINDOW = 600
+
+/**
+ * Products, grouped by their /products/<handle> URL.
+ *
+ * GROUPED BY HANDLE, NOT BY NAME, and this is the fix for a real failure.
+ * Shopify themes render each card as TWO anchors to the same product - the
+ * image, then the title. The price sits after the title anchor, roughly 330
+ * characters away, but over 1,100 characters past the image anchor.
+ *
+ * The previous version de-duplicated on the product NAME and kept the FIRST
+ * anchor it saw, which is the image one - whose price is outside the window.
+ * On Guava Lebanon that stored price: null for 75 of 75 products, every one
+ * of which visibly had a price, and the model then correctly reported what
+ * the evidence said. Grouping by handle and taking the first price found
+ * across ALL of a product's anchors recovers 75 of 75.
+ */
 function extractProducts(html: string): ProductEvidence[] {
-  const out: ProductEvidence[] = []
-  const seen = new Set<string>()
+  const grouped = new Map<string, ProductEvidence>()
 
-  // Shopify product URLs are canonical: /products/<handle>. The anchor text
-  // is the product title in every theme we have fixtures for.
   for (const match of html.matchAll(
-    /<a\b[^>]*href="[^"]*\/products\/[^"]*"[^>]*>([\s\S]{0,400}?)<\/a>/gi,
+    /<a\b[^>]*href="([^"]*\/products\/[^"]*)"[^>]*>([\s\S]{0,400}?)<\/a>/gi,
   )) {
-    const name = textOf(match[1] ?? '')
-    if (!name) continue
-    const key = name.toLowerCase()
-    if (seen.has(key)) continue
-    seen.add(key)
+    const handle = (match[1] ?? '')
+      .replace(/[?#].*$/, '')
+      .replace(/\/+$/, '')
+      .split('/products/')
+      .pop()
+    if (!handle) continue
 
-    // A price inside the same anchor, or just after it, belongs to this card.
-    const tail = html.slice(
-      (match.index ?? 0) + match[0].length,
-      (match.index ?? 0) + match[0].length + 400,
+    const name = textOf(match[2] ?? '')
+    const end = (match.index ?? 0) + match[0].length
+    const price = clean(
+      (match[2]?.match(PRICE)?.[0] ?? html.slice(end, end + PRICE_WINDOW).match(PRICE)?.[0]) ?? null,
     )
-    const price = (match[1]?.match(PRICE)?.[0] ?? tail.match(PRICE)?.[0]) ?? null
 
-    out.push({ name, price: clean(price) })
-    if (out.length >= LIMITS.products) break
+    const existing = grouped.get(handle)
+    if (existing) {
+      // Fill in whichever half this anchor supplies.
+      if (!existing.name && name) existing.name = name
+      if (!existing.price && price) existing.price = price
+      continue
+    }
+    if (grouped.size >= LIMITS.products && !name) continue
+    grouped.set(handle, { name: name ?? '', price })
   }
-  return out
+
+  // A product we could not name is not usable evidence.
+  return [...grouped.values()]
+    .filter((p) => p.name)
+    .slice(0, LIMITS.products)
+}
+
+/**
+ * Does the page carry price markup ANYWHERE, even where we could not tie it
+ * to a product?
+ *
+ * Used only to decide between 'absent' and 'unknown'. If a page is full of
+ * price elements and we still extracted none, the honest answer is that our
+ * association failed - not that the shop hides its prices.
+ */
+function pageHasPriceMarkup(html: string): boolean {
+  return (
+    PRICE.test(html)
+    || /class="[^"]*\b(price|money|amount)\b[^"]*"/i.test(html)
+    || /<(price|sale-price|product-price)[\s>-]/i.test(html)
+    || /data-(price|product-price)\b/i.test(html)
+  )
 }
 
 function extractCollections(html: string): string[] {
@@ -265,6 +332,31 @@ function extractCtas(html: string): string[] {
   )
 }
 
+/**
+ * Price state for a page.
+ *
+ * 'absent' is claimed ONLY when we found product cards, found no price on
+ * any of them, AND the page carries no price markup at all. Anything else is
+ * 'unknown', because our own parser is the likeliest explanation for a miss.
+ */
+function detectPrices(products: ProductEvidence[], html: string): Detection {
+  if (products.some((p) => p.price !== null)) return 'present'
+  if (products.length === 0) return 'unknown'
+  return pageHasPriceMarkup(html) ? 'unknown' : 'absent'
+}
+
+/**
+ * Present-or-unknown, never absent.
+ *
+ * These come from substring probes over one HTML document. A hit proves the
+ * feature exists; a miss proves nothing - the markup could be shaped
+ * differently or rendered client-side. Reporting 'absent' here would let a
+ * parser blind spot become a criticism of someone's shop.
+ */
+function detectByProbe(found: boolean): Detection {
+  return found ? 'present' : 'unknown'
+}
+
 export function extractPage(
   html: string,
   url: string,
@@ -289,10 +381,14 @@ export function extractPage(
     collections: extractCollections(clean_html),
     products,
     ctas: extractCtas(clean_html),
-    has_search: /type="search"|name="q"|role="search"|\/search/i.test(clean_html),
-    has_size_guide: /size\s?(guide|chart)|fit\s?guide/i.test(lower),
-    has_product_cards: products.length > 0,
-    shows_prices: products.some((p) => p.price !== null),
+    price_detection: detectPrices(products, clean_html),
+    search_detection: detectByProbe(
+      /type="search"|name="q"|role="search"|\/search/i.test(clean_html),
+    ),
+    size_guide_detection: detectByProbe(
+      /size\s?(guide|chart)|fit\s?guide/i.test(lower),
+    ),
+    product_card_detection: detectByProbe(products.length > 0),
   }
 }
 

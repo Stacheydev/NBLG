@@ -77,9 +77,9 @@ describe('extractPage', () => {
   })
 
   it('records structural flags', () => {
-    expect(result.has_search).toBe(true)
-    expect(result.has_product_cards).toBe(true)
-    expect(result.shows_prices).toBe(true)
+    expect(result.search_detection).toBe('present')
+    expect(result.product_card_detection).toBe('present')
+    expect(result.price_detection).toBe('present')
   })
 
   it('reads CTA text', () => {
@@ -91,7 +91,7 @@ describe('extractPage', () => {
     expect(flat).not.toContain('currency')
     expect(flat).not.toContain('color: red')
     // The comment mentions a size guide; the flag must stay false.
-    expect(result.has_size_guide).toBe(false)
+    expect(result.size_guide_detection).toBe('unknown')
   })
 
   it('never carries raw HTML through', () => {
@@ -104,7 +104,7 @@ describe('extractPage', () => {
     for (const html of ['', '<html></html>', 'not html at all', '<<<>>>']) {
       const page = extractPage(html, 'https://x.com/', 'homepage')
       expect(page.products).toEqual([])
-      expect(page.has_product_cards).toBe(false)
+      expect(page.product_card_detection).toBe('unknown')
     }
   })
 

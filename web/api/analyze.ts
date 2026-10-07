@@ -151,6 +151,19 @@ async function saveAnalysis(
     opportunity_confidence: analysis.opportunity_confidence ?? null,
     outreach_angle: analysis.outreach_angle ?? null,
     message: analysis.message ?? null,
+
+    // The generic opener, in its own columns. Written on every save for the
+    // same reason as everything above: a key absent from the payload is
+    // absent from PostgREST's DO UPDATE SET list, so a re-analysis would
+    // leave a previous run's fallback stranded on the row.
+    fallback_message: analysis.fallback_message ?? null,
+    fallback_category: analysis.fallback_category ?? null,
+    // Hard-coded false, not copied from the analysis. A fallback is
+    // unverified by definition, so there is no value this could legitimately
+    // take - and writing the literal means no future bug can store `true`
+    // and have a reader trust an unverified opener.
+    fallback_verified: false,
+
     model,
     pages_fetched: pagesFetched,
     analyzed_at: new Date().toISOString(),
@@ -206,6 +219,9 @@ function failedAnalysis(reason: string): Analysis {
     opportunity_confidence: null,
     outreach_angle: null,
     message: null,
+    fallback_message: null,
+    fallback_category: null,
+    fallback_verified: false,
     rejected_reason: reason,
   }
 }
@@ -310,6 +326,8 @@ export default async function handler(
         opportunity_category: null, opportunity_observation: null,
         opportunity_evidence: null, evidence_refs: null,
         opportunity_confidence: null, outreach_angle: null, message: null,
+        fallback_message: null, fallback_category: null,
+        fallback_verified: false,
         rejected_reason: 'no products, collections or navigation found',
       }
       await saveAnalysis(domain, analysis, null, evidence.pages_fetched, token, env)
@@ -380,6 +398,14 @@ function publicView(analysis: Analysis, pagesFetched: number) {
         : null,
     outreach_angle: analysis.outreach_angle,
     message: analysis.message,
+
+    // Kept in their OWN fields, never merged into `message`. The browser
+    // must be able to tell a verified finding from a generic opener without
+    // inspecting the text, so it can label the second one plainly.
+    fallback_message: analysis.fallback_message,
+    fallback_category: analysis.fallback_category,
+    fallback_verified: analysis.fallback_verified,
+
     pages_fetched: pagesFetched,
   }
 }

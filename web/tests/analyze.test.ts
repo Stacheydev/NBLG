@@ -457,7 +457,9 @@ function stubFetchCapturingUpsert(options: Parameters<typeof stubFetch>[0] = {})
 const ALL_COLUMNS = [
   'domain', 'status', 'opportunity_category', 'opportunity_observation',
   'opportunity_evidence', 'evidence_refs', 'opportunity_confidence',
-  'outreach_angle', 'message', 'model', 'pages_fetched', 'analyzed_at',
+  'outreach_angle', 'message',
+  'fallback_message', 'fallback_category', 'fallback_verified',
+  'model', 'pages_fetched', 'analyzed_at',
 ]
 
 describe('upsert payload', () => {
@@ -523,6 +525,79 @@ describe('upsert payload', () => {
         if (row.status !== 'success') {
           expect(row.message, `status=${row.status} carried a message`).toBeNull()
         }
+      }
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('persists all three fallback columns on a declined analysis', async () => {
+    // A fallback used to exist only in the API response and vanished on
+    // reload. It must now reach the row, explicitly, every time.
+    process.env.GROQ_API_KEY = DUMMY_KEY
+    const fallback =
+      'Hey Qatfa, I was browsing your site and was curious how you are '
+      + 'thinking about the overall shopping experience, from finding a '
+      + 'product through to deciding whether to buy. I am Hadi from North '
+      + 'Bound. Is that something you have been looking at?'
+
+    const { upserts } = stubFetchCapturingUpsert({
+      model: {
+        status: 'no_strong_opportunity', website_opportunity: null,
+        outreach_angle: null, message: null, fallback_message: fallback,
+      },
+    })
+    const { api, captured } = res()
+    await handler(req({ domain: 'qatfa.com' }), api)
+
+    expect(upserts).toHaveLength(1)
+    const row = upserts[0]!
+    expect(row.status).toBe('no_strong_opportunity')
+    expect(row.fallback_message).toBe(fallback)
+    expect(row.fallback_category).toBe('generic_shopping_experience')
+    expect(row.fallback_verified).toBe(false)
+    // The verified field stays null - the two modes never share a column.
+    expect(row.message).toBeNull()
+
+    // And the same values reach the browser.
+    const body = captured.body as Record<string, unknown>
+    expect(body.fallback_message).toBe(fallback)
+    expect(body.fallback_verified).toBe(false)
+  })
+
+  it('writes explicit nulls for the fallback columns on a verified success', async () => {
+    process.env.GROQ_API_KEY = DUMMY_KEY
+    const { upserts } = stubFetchCapturingUpsert()
+    const { api } = res()
+    await handler(req({ domain: 'qatfa.com' }), api)
+
+    const row = upserts[0]!
+    expect(row.status).toBe('success')
+    expect(row.message).toBeTruthy()
+    expect(row.fallback_message).toBeNull()
+    expect(row.fallback_category).toBeNull()
+    expect(row.fallback_verified).toBe(false)
+  })
+
+  it('never stores fallback_verified as true, in any scenario', async () => {
+    process.env.GROQ_API_KEY = DUMMY_KEY
+    for (const scenario of [
+      {},
+      { modelStatus: 500 },
+      { html: null },
+      { model: { status: 'no_strong_opportunity', website_opportunity: null,
+                 outreach_angle: null, message: null,
+                 fallback_message: 'Hey Qatfa, I was browsing your site and '
+                   + 'was curious how you are thinking about the shopping '
+                   + 'experience overall. I am Hadi from North Bound. Is '
+                   + 'that something you have looked at?' } },
+    ] as Parameters<typeof stubFetch>[0][]) {
+      const { upserts } = stubFetchCapturingUpsert(scenario)
+      const { api } = res()
+      await handler(req({ domain: 'qatfa.com' }), api)
+      for (const row of upserts) {
+        expect(row.fallback_verified).toBe(false)
+        if (row.status === 'success') expect(row.fallback_message).toBeNull()
+        else expect(row.message).toBeNull()
       }
       vi.unstubAllGlobals()
     }

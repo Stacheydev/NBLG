@@ -1,25 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Lead } from '../types'
+import { LEAD_ANALYSIS_COLUMNS, type Lead, type LeadAnalysis as StoredAnalysis } from '../types'
+import { type AnalysisResponse, storedToResponse } from '../lib/analysis'
 
 interface LeadAnalysisProps {
   lead: Lead
-}
-
-interface Opportunity {
-  category: string | null
-  observation: string | null
-  evidence: string | null
-  confidence: number | null
-}
-
-interface AnalysisResponse {
-  status: 'success' | 'no_strong_opportunity' | 'insufficient_evidence' | 'failed'
-  opportunity: Opportunity | null
-  outreach_angle: string | null
-  message: string | null
-  pages_fetched?: number
-  error?: string
 }
 
 const label = 'text-[11px] font-semibold uppercase tracking-wider ' +
@@ -39,6 +24,31 @@ export default function LeadAnalysis({ lead }: LeadAnalysisProps) {
   const [result, setResult] = useState<AnalysisResponse | null>(null)
   const [running, setRunning] = useState(false)
   const [copied, setCopied] = useState(false)
+
+  /**
+   * Load any previously saved analysis, so a result survives a reload.
+   *
+   * Read straight through the existing Supabase client, under the same RLS
+   * the lead list uses - no new endpoint, and no service-role key. A
+   * `failed` row is ignored: it records that an attempt did not work, which
+   * is not something to re-display as a result.
+   */
+  useEffect(() => {
+    let cancelled = false
+
+    void (async () => {
+      const { data, error } = await supabase
+        .from('lead_analyses')
+        .select(LEAD_ANALYSIS_COLUMNS)
+        .eq('domain', lead.domain)
+        .maybeSingle<StoredAnalysis>()
+
+      if (cancelled || error || !data || data.status === 'failed') return
+      setResult(storedToResponse(data))
+    })()
+
+    return () => { cancelled = true }
+  }, [lead.domain])
 
   async function analyze() {
     setRunning(true)
@@ -88,10 +98,10 @@ export default function LeadAnalysis({ lead }: LeadAnalysisProps) {
     }
   }
 
-  async function copyMessage() {
-    if (!result?.message) return
+  async function copyText(text: string | null | undefined) {
+    if (!text) return
     try {
-      await navigator.clipboard.writeText(result.message)
+      await navigator.clipboard.writeText(text)
       setCopied(true)
       setTimeout(() => setCopied(false), 2_000)
     } catch {
@@ -153,7 +163,7 @@ export default function LeadAnalysis({ lead }: LeadAnalysisProps) {
                 </p>
                 <button
                   type="button"
-                  onClick={copyMessage}
+                  onClick={() => copyText(result.message)}
                   className="mt-1.5 rounded-md border border-slate-300 px-2.5
                     py-1 text-xs font-medium text-slate-700 transition
                     hover:bg-slate-50 dark:border-slate-600
@@ -167,12 +177,46 @@ export default function LeadAnalysis({ lead }: LeadAnalysisProps) {
         </dl>
       )}
 
-      {/* No defensible observation. Deliberately no message. */}
+      {/* No defensible observation.
+          The generic opener is shown, but it must be impossible to mistake
+          for an evidence-backed finding: its own amber-bordered block, its
+          own heading, and the word "unverified" above the text. */}
       {(result?.status === 'no_strong_opportunity'
         || result?.status === 'insufficient_evidence') && (
-        <p className="mt-2.5 text-sm text-slate-500 dark:text-slate-400">
-          No strong outreach opportunity found.
-        </p>
+        <div className="mt-2.5">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            No strong outreach opportunity found.
+          </p>
+
+          {result.fallback_message && (
+            <div className="mt-2 rounded-md border border-amber-400/70 bg-amber-50/70
+              p-2.5 dark:border-amber-500/40 dark:bg-amber-500/10">
+              <p className="text-[11px] font-semibold uppercase tracking-wider
+                text-amber-800 dark:text-amber-400">
+                ⚠ Generic fallback — unverified
+              </p>
+              <p className="mt-1 text-xs text-amber-900/80 dark:text-amber-300/80">
+                The website analysis did not find a strong, evidence-backed
+                issue. This opener makes no claim about this store — it only
+                starts a conversation.
+              </p>
+              <p className="mt-2 whitespace-pre-wrap text-sm text-slate-800
+                dark:text-slate-200">
+                {result.fallback_message}
+              </p>
+              <button
+                type="button"
+                onClick={() => copyText(result.fallback_message)}
+                className="mt-1.5 rounded-md border border-amber-500/60 px-2.5
+                  py-1 text-xs font-medium text-amber-900 transition
+                  hover:bg-amber-100/60 dark:border-amber-500/40
+                  dark:text-amber-300 dark:hover:bg-amber-500/10"
+              >
+                {copied ? 'Copied' : 'Copy generic message'}
+              </button>
+            </div>
+          )}
+        </div>
       )}
 
       {result?.status === 'failed' && (
