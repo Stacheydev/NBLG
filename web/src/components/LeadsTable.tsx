@@ -1,6 +1,7 @@
 import type { Lead } from '../types'
 import { exactTime, hostname, instagramHandle, relativeTime } from '../lib/format'
 import ExternalLink from './ExternalLink'
+import LeadAnalysis from './LeadAnalysis'
 import PriorityBadge from './PriorityBadge'
 
 interface LeadsTableProps {
@@ -64,12 +65,16 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
           </tr>
         </thead>
 
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-          {leads.map((lead) => (
-            <tr
-              key={lead.domain}
-              className="transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
-            >
+        {/* A <tbody> per lead, not one for the table. Each lead is its own
+            row group so the divider separates LEADS, and the analysis
+            panel stays visually attached to the row it belongs to.
+            Multiple tbody elements are valid HTML. */}
+        {leads.map((lead) => (
+          <tbody
+            key={lead.domain}
+            className="border-t border-slate-100 first:border-t-0 dark:border-slate-800"
+          >
+            <tr className="transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
               <td className="px-4 py-3">
                 <div className="truncate font-medium text-slate-900 dark:text-slate-100">
                   {lead.business_name}
@@ -113,8 +118,17 @@ export default function LeadsTable({ leads }: LeadsTableProps) {
                 </span>
               </td>
             </tr>
-          ))}
-        </tbody>
+
+            {/* The Analyze action. It lived only in LeadCard, which is
+                mobile-only (md:hidden), so on a desktop viewport the
+                button was not rendered at all. */}
+            <tr>
+              <td colSpan={5} className="px-4 pb-3">
+                <LeadAnalysis lead={lead} />
+              </td>
+            </tr>
+          </tbody>
+        ))}
       </table>
     </div>
   )
